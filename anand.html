@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>
+         Rewarded slot test page
+      </title>
+      <script src="//www.googletagservices.com/tag/js/gpt.js"></script>
+      <script>
+
+       googletag = window.googletag || {cmd: []};
+
+       googletag.cmd.push(() => {
+
+       const rewardedSlot = googletag.defineOutOfPageSlot(
+
+       '/1234/main/top',
+       googletag.enums.OutOfPageFormat.REWARDED)
+
+       .addService(googletag.pubads());
+
+       googletag.enableServices();
+
+       googletag.pubads().addEventListener('rewardedSlotReady',
+       function(evt) {
+
+         if (confirm('want to see a rewarded ad?')) {
+
+           evt.makeRewardedVisible();
+
+         } else {
+
+           googletag.destroySlots([rewardedSlot]);
+
+         }
+
+       });
+
+       googletag.pubads().addEventListener('rewardedSlotGranted',
+       function(evt) {
+
+         alert('granted! ' + JSON.stringify(evt.payload));
+
+       });
+
+       googletag.pubads().addEventListener('rewardedSlotClosed',
+       function(evt) {
+
+         alert('Closed by the user!');
+         googletag.destroySlots([rewardedSlot]);
+
+       });
+
+       googletag.display(rewardedSlot);
+
+     });
+
+    </script>
+   </head>
+   <body>
+       <p>
+           Bottom of the page...
+       </p>
+   </body>
+</html>
