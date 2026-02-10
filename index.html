@@ -330,6 +330,291 @@
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
+
+        /* AI Chatbot Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chatbot-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(220, 20, 60, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .chatbot-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(220, 20, 60, 0.6);
+        }
+
+        .chatbot-button.active {
+            transform: scale(0.9);
+        }
+
+        .chatbot-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(220, 20, 60, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        .chatbot-window.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chatbot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .chatbot-header-info h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .chatbot-header-info p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        .chatbot-message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.user-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .chatbot-message.user .message-bubble {
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            color: white;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #8B0000;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .chatbot-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 10px 15px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chatbot-input:focus {
+            border-color: #DC143C;
+        }
+
+        .chatbot-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chatbot-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .quick-reply-btn {
+            padding: 8px 15px;
+            border: 1px solid #DC143C;
+            background: white;
+            color: #DC143C;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-reply-btn:hover {
+            background: #DC143C;
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .chatbot-window {
+                width: calc(100vw - 40px);
+                height: 70vh;
+            }
+        }
     </style>
 </head>
 <body>
@@ -542,6 +827,48 @@
         </div>
     </footer>
 
+    <!-- AI Chatbot Widget -->
+    <div class="chatbot-container">
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <div class="chatbot-avatar">🤖</div>
+                <div class="chatbot-header-info">
+                    <h3>Mehrotra AI Assistant</h3>
+                    <p>Online • Here to help!</p>
+                </div>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="chatbot-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-bubble">
+                        Hello! Welcome to Mehrotra Retail! 👋<br><br>
+                        I'm your AI shopping assistant. I can help you with:
+                        <div class="quick-replies">
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Tell me about sarees')">Sarees</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Show me suiting options')">Suiting</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('What about shirting?')">Shirting</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Store location')">Location</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chatbot-input-area">
+                <input
+                    type="text"
+                    class="chatbot-input"
+                    id="chatbotInput"
+                    placeholder="Type your message..."
+                    onkeypress="if(event.key === 'Enter') sendMessage()"
+                >
+                <button class="chatbot-send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+        <button class="chatbot-button" id="chatbotButton" onclick="toggleChatbot()">
+            <div class="chatbot-pulse"></div>
+            <span>💬</span>
+        </button>
+    </div>
+
     <script>
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -584,6 +911,178 @@
         document.querySelectorAll('.product-card').forEach(card => {
             observer.observe(card);
         });
+
+        // AI Chatbot Functionality
+        function toggleChatbot() {
+            const window = document.getElementById('chatbotWindow');
+            const button = document.getElementById('chatbotButton');
+
+            window.classList.toggle('active');
+            button.classList.toggle('active');
+
+            if (window.classList.contains('active')) {
+                document.getElementById('chatbotInput').focus();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatbotInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Generate AI response after a delay
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                hideTypingIndicator();
+                addMessage(response, 'bot');
+            }, 1000 + Math.random() * 1000);
+        }
+
+        function sendQuickReply(message) {
+            document.getElementById('chatbotInput').value = message;
+            sendMessage();
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `message-avatar ${sender === 'user' ? 'user-avatar' : ''}`;
+            avatar.textContent = sender === 'user' ? '👤' : '🤖';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = text;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chatbot-message';
+            typingDiv.id = 'typingIndicator';
+
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-bubble typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function generateAIResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+
+            // Greetings
+            if (message.match(/\b(hi|hello|hey|namaste)\b/)) {
+                return "Hello! 👋 Welcome to Mehrotra Retail! How can I assist you today? I can help you find the perfect sarees, suiting, shirting, or any other fabrics you're looking for.";
+            }
+
+            // Sarees
+            if (message.match(/\b(saree|sari|sarees|silk|banarasi|cotton saree)\b/)) {
+                return "We have an exquisite collection of sarees! 👗<br><br>✨ <b>Silk Sarees</b> - Luxurious and perfect for weddings<br>💎 <b>Banarasi Sarees</b> - Traditional with gold brocade<br>🌸 <b>Cotton Sarees</b> - Comfortable for daily wear<br>⭐ <b>Designer Sarees</b> - Contemporary elegance<br><br>Would you like to know more about any specific type?";
+            }
+
+            // Suiting
+            if (message.match(/\b(suit|suiting|formal|wedding suit|groom)\b/)) {
+                return "Our premium suiting collection is perfect for you! 🤵<br><br>👔 <b>Formal Suiting</b> - High-quality for professionals<br>🎩 <b>Wedding Suiting</b> - Special fabrics for your big day<br>✨ <b>Designer Suiting</b> - Exclusive patterns<br><br>All fabrics are wrinkle-resistant and durable. Need help choosing?";
+            }
+
+            // Shirting
+            if (message.match(/\b(shirt|shirting|cotton shirt|formal shirt|casual shirt)\b/)) {
+                return "We have finest shirting fabrics available! 👕<br><br>💼 <b>Formal Shirts</b> - Crisp cotton for office wear<br>🎨 <b>Casual Shirting</b> - Trendy patterns and prints<br>🌟 <b>Premium Cotton</b> - 100% pure cotton<br><br>Easy to iron and maintain. What's your preference?";
+            }
+
+            // Pricing
+            if (message.match(/\b(price|cost|expensive|cheap|budget|affordable)\b/)) {
+                return "We offer competitive pricing across all our collections! 💰<br><br>Our prices vary based on fabric type and quality:<br>• Cotton sarees start from affordable ranges<br>• Silk and Banarasi sarees are premium<br>• Suiting and shirting at competitive rates<br><br>We also have regular offers and discounts! Visit our store for the best deals or ask about specific products.";
+            }
+
+            // Quality
+            if (message.match(/\b(quality|genuine|authentic|original|real)\b/)) {
+                return "Quality is our top priority! ✅<br><br>• 100% genuine fabrics<br>• Sourced directly from trusted manufacturers<br>• Quality-checked before sale<br>• Authentic materials guaranteed<br><br>We've been serving customers for decades with authentic products. Your trust is our treasure!";
+            }
+
+            // Location/Contact
+            if (message.match(/\b(location|address|where|visit|store|shop|contact|phone|call)\b/)) {
+                return "📍 <b>Visit Our Store:</b><br>We'd love to welcome you to Mehrotra Retail!<br><br>📞 <b>Contact Us:</b><br>Feel free to call us for bulk orders or special requests<br><br>🕒 <b>Business Hours:</b><br>We're here to serve you!<br><br>Visit us for a personalized shopping experience with expert guidance.";
+            }
+
+            // Fabrics/Materials
+            if (message.match(/\b(fabric|material|cloth|textile|kurta|dress material)\b/)) {
+                return "We have a wide variety of premium fabrics! 🧵<br><br>🎀 Kurta Fabrics - Traditional & modern<br>💃 Dress Materials - Complete sets with dupattas<br>🌈 Fancy Fabrics - Designer embellishments<br>🏵️ Blouse Materials - Perfect matches<br><br>What type of fabric are you looking for?";
+            }
+
+            // Wedding/Occasion
+            if (message.match(/\b(wedding|marriage|occasion|festival|party|celebration)\b/)) {
+                return "Perfect timing! We specialize in fabrics for special occasions! 🎉<br><br>For weddings, we recommend:<br>👰 Banarasi & Designer sarees<br>🤵 Premium wedding suiting<br>✨ Rich silk fabrics<br>💎 Embellished materials<br><br>Our experts can help you choose the perfect fabric for your special day!";
+            }
+
+            // Colors
+            if (message.match(/\b(color|colour|red|blue|green|yellow|pink|black|white|golden)\b/)) {
+                return "We have fabrics in a rainbow of colors! 🌈<br><br>From vibrant reds and elegant golds to soothing pastels and classic blacks - we have it all!<br><br>Visit our store to see our complete color collection. Our team can help you find the perfect shade for your needs!";
+            }
+
+            // Thank you
+            if (message.match(/\b(thank|thanks|appreciated|great|awesome|good)\b/)) {
+                return "You're most welcome! 😊 It's our pleasure to help you. If you have any more questions about our fabrics or need assistance choosing the perfect material, feel free to ask. We're here to make your shopping experience wonderful! 🛍️";
+            }
+
+            // Goodbye
+            if (message.match(/\b(bye|goodbye|see you|later)\b/)) {
+                return "Thank you for chatting with us! 👋 We look forward to seeing you at Mehrotra Retail. Have a wonderful day! Feel free to return anytime you need assistance. Happy shopping! 🛍️";
+            }
+
+            // Help
+            if (message.match(/\b(help|assist|support|guide)\b/)) {
+                return "I'm here to help! 🤝<br><br>I can assist you with:<br>✅ Product information (sarees, suiting, shirting)<br>✅ Pricing and offers<br>✅ Quality and authenticity<br>✅ Store location and contact<br>✅ Fabric recommendations<br><br>What would you like to know?";
+            }
+
+            // Default response
+            const defaultResponses = [
+                "That's a great question! For detailed information about our products and pricing, I recommend visiting our store where our experts can provide personalized assistance. Is there anything specific about our sarees, suiting, or shirting you'd like to know?",
+                "I'd be happy to help! 😊 Could you please tell me more about what you're looking for? Are you interested in sarees, suiting, shirting, or other fabrics?",
+                "Thank you for your interest! For the best experience and detailed answers, our store team would be delighted to assist you. Meanwhile, feel free to ask about our product categories, quality, or pricing!",
+                "I'm here to help! Let me know if you'd like information about our sarees, suiting fabrics, shirting materials, or any other products from Mehrotra Retail. 🛍️"
+            ];
+
+            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        }
+
+        // Auto-open chatbot after 3 seconds (optional)
+        setTimeout(() => {
+            if (!document.getElementById('chatbotWindow').classList.contains('active')) {
+                // Uncomment below to auto-open chatbot
+                // toggleChatbot();
+            }
+        }, 3000);
     </script>
 </body>
 </html>
