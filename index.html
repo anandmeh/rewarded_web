@@ -13,7 +13,9 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
+            background: #FFF8F0;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,215,0,.03) 35px, rgba(255,215,0,.03) 70px);
             color: #333;
             overflow-x: hidden;
         }
@@ -27,6 +29,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            border-bottom: 3px solid #FFD700;
         }
 
         nav {
@@ -42,6 +45,27 @@
             font-size: 28px;
             font-weight: bold;
             letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: '✦';
+            color: #FFD700;
+            animation: sparkle 2s infinite;
+        }
+
+        .logo::after {
+            content: '✦';
+            color: #FFD700;
+            animation: sparkle 2s infinite 1s;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
         }
 
         .nav-links {
@@ -66,27 +90,52 @@
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><rect fill="%23DC143C" width="1200" height="400"/><path fill="%238B0000" opacity="0.3" d="M0,200 Q300,100 600,200 T1200,200 L1200,400 L0,400 Z"/></svg>');
+            background: linear-gradient(rgba(139,0,0,0.7), rgba(139,0,0,0.7)),
+                        url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&h=600&fit=crop') center/cover;
             background-size: cover;
             background-position: center;
-            height: 400px;
+            height: 450px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: white;
+            position: relative;
+            border-bottom: 5px solid #FFD700;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: repeating-linear-gradient(
+                90deg,
+                #FFD700 0px,
+                #FFD700 20px,
+                #FF6B35 20px,
+                #FF6B35 40px,
+                #4ECDC4 40px,
+                #4ECDC4 60px
+            );
         }
 
         .hero-content h1 {
             font-size: 48px;
             margin-bottom: 20px;
             animation: fadeInUp 1s ease;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            color: #FFD700;
+            font-weight: 900;
         }
 
         .hero-content p {
             font-size: 22px;
             animation: fadeInUp 1s ease 0.2s backwards;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: 500;
         }
 
         @keyframes fadeInUp {
@@ -121,15 +170,24 @@
         }
 
         .section-title::after {
+            content: '✦';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFD700;
+            font-size: 24px;
+        }
+
+        .section-title::before {
             content: '';
             position: absolute;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, #8B0000, #DC143C);
-            border-radius: 2px;
+            width: 150px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #8B0000, #DC143C, #FFD700, #DC143C, #8B0000, transparent);
         }
 
         /* Product Grid */
@@ -147,17 +205,21 @@
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
+            border: 2px solid transparent;
         }
 
         .product-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 30px rgba(220, 20, 60, 0.3);
+            border: 2px solid #FFD700;
         }
 
         .product-image {
             width: 100%;
             height: 250px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -166,10 +228,15 @@
             overflow: hidden;
         }
 
-        .product-card:nth-child(1) .product-image { background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); }
-        .product-card:nth-child(2) .product-image { background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%); }
-        .product-card:nth-child(3) .product-image { background: linear-gradient(135deg, #F093FB 0%, #F5576C 100%); }
-        .product-card:nth-child(4) .product-image { background: linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%); }
+        .product-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
+        }
 
         .product-image::before {
             content: '';
@@ -212,15 +279,39 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
+            box-shadow: 0 2px 8px rgba(220, 20, 60, 0.3);
+            border: 1px solid #FFD700;
         }
 
         /* Special Features Section */
         .features {
-            background: white;
+            background: linear-gradient(135deg, #FFF 0%, #FFF8F0 100%);
             border-radius: 15px;
             padding: 40px;
             margin: 60px 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 3px solid #FFD700;
+            position: relative;
+        }
+
+        .features::before {
+            content: '❋';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 30px;
+            color: #DC143C;
+            opacity: 0.3;
+        }
+
+        .features::after {
+            content: '❋';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 30px;
+            color: #DC143C;
+            opacity: 0.3;
         }
 
         .features-grid {
@@ -317,18 +408,21 @@
             display: inline-block;
             margin-top: 20px;
             padding: 12px 30px;
-            background: white;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             color: #8B0000;
             text-decoration: none;
             border-radius: 25px;
             font-weight: bold;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 2px solid white;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
         }
 
         .btn-explore:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 20px rgba(255,215,0,0.6);
+            background: linear-gradient(135deg, #FFA500 0%, #FFD700 100%);
         }
 
         /* AI Chatbot Styles */
@@ -648,7 +742,7 @@
             <h2 class="section-title">Exquisite Sarees</h2>
             <div class="product-grid">
                 <div class="product-card">
-                    <div class="product-image">👗</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Silk Sarees</h3>
                         <p class="product-description">Luxurious pure silk sarees with intricate designs and vibrant colors. Perfect for weddings and special occasions.</p>
@@ -656,7 +750,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">✨</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1583391733981-5babce481b6f?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Designer Sarees</h3>
                         <p class="product-description">Contemporary designs with traditional elegance. Hand-picked collection from renowned designers.</p>
@@ -664,7 +758,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🌸</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Cotton Sarees</h3>
                         <p class="product-description">Comfortable and elegant cotton sarees for daily wear. Breathable fabric with beautiful prints.</p>
@@ -672,7 +766,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">💎</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1611893404252-e2f8f6f0e69f?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Banarasi Sarees</h3>
                         <p class="product-description">Traditional Banarasi sarees with gold and silver brocade. Heritage craftsmanship at its finest.</p>
@@ -687,7 +781,7 @@
             <h2 class="section-title">Premium Suiting</h2>
             <div class="product-grid">
                 <div class="product-card">
-                    <div class="product-image">🤵</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1594938291221-94f18cbb5660?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Formal Suiting</h3>
                         <p class="product-description">High-quality formal suiting fabrics for the modern professional. Wrinkle-resistant and durable.</p>
@@ -695,7 +789,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🎩</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Wedding Suiting</h3>
                         <p class="product-description">Premium fabrics for your special day. Rich textures and elegant finishes for grooms.</p>
@@ -703,7 +797,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">👔</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Designer Suiting</h3>
                         <p class="product-description">Exclusive designer patterns and premium imported fabrics. Make a statement with style.</p>
@@ -718,7 +812,7 @@
             <h2 class="section-title">Fine Shirting Fabrics</h2>
             <div class="product-grid">
                 <div class="product-card">
-                    <div class="product-image">👕</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Formal Shirts</h3>
                         <p class="product-description">Crisp cotton and linen blends for formal wear. Easy to iron and maintain professional appearance.</p>
@@ -726,7 +820,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🎨</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Casual Shirting</h3>
                         <p class="product-description">Trendy patterns and comfortable fabrics for casual occasions. Wide range of colors and prints.</p>
@@ -734,7 +828,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🌟</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Premium Cotton</h3>
                         <p class="product-description">100% premium cotton shirting fabrics. Breathable, soft, and long-lasting quality.</p>
@@ -749,7 +843,7 @@
             <h2 class="section-title">Other Premium Fabrics</h2>
             <div class="product-grid">
                 <div class="product-card">
-                    <div class="product-image">🧵</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1583391733956-6c78276477e5?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Kurta Fabrics</h3>
                         <p class="product-description">Traditional and modern kurta materials. Perfect for ethnic wear and festive occasions.</p>
@@ -757,7 +851,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🎀</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Dress Materials</h3>
                         <p class="product-description">Complete dress material sets with matching dupattas. Ready to stitch collections.</p>
@@ -765,7 +859,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🌈</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1622204117927-50173e1be8d0?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Fancy Fabrics</h3>
                         <p class="product-description">Latest designer fabrics with embellishments and embroidery. Unique patterns for special occasions.</p>
@@ -773,7 +867,7 @@
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-image">🏵️</div>
+                    <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1583391733956-6c78276477e5?w=600&h=400&fit=crop');"></div>
                     <div class="product-info">
                         <h3 class="product-name">Blouse Materials</h3>
                         <p class="product-description">Exclusive blouse fabrics to complement your sarees. Wide variety of colors and textures.</p>
