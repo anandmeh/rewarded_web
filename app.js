@@ -456,7 +456,8 @@ function renderFeatured(articles) {
     section.innerHTML = `
         <div class="featured-grid">
             <article class="featured-card main-featured slide-up" onclick="openReader(0)">
-                <div class="featured-img" style="background-image: url('${escapeHTML(main.thumbnail)}')"></div>
+                <img class="featured-img-tag" src="${escapeHTML(main.thumbnail)}" alt="${escapeHTML(main.title)}"
+                     onerror="this.onerror=null;this.src='${getFallbackImage('general', 0)}'">
                 <div class="featured-overlay"></div>
                 <div class="featured-body">
                     <div class="featured-source"><span class="source-dot"></span>${escapeHTML(main.source)}</div>
@@ -476,7 +477,8 @@ function renderFeatured(articles) {
                 ${[side1, side2].map((article, idx) => `
                     <article class="featured-card side-featured slide-up" onclick="openReader(${idx + 1})">
                         <div class="featured-img-wrap">
-                            <div class="featured-img" style="background-image: url('${escapeHTML(article.thumbnail)}')"></div>
+                            <img class="featured-img-tag" src="${escapeHTML(article.thumbnail)}" alt="${escapeHTML(article.title)}"
+                                 onerror="this.onerror=null;this.src='${getFallbackImage(state.currentCategory, idx + 1)}'">
                         </div>
                         <div class="featured-body">
                             <div class="featured-source"><span class="source-dot"></span>${escapeHTML(article.source)}</div>

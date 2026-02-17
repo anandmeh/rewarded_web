@@ -473,13 +473,13 @@ input { font-family: inherit; }
     min-height: 440px;
     display: flex; flex-direction: column; justify-content: flex-end;
 }
-.main-featured .featured-img {
+.main-featured .featured-img-tag {
     position: absolute; inset: 0;
-    background-size: cover; background-position: center;
-    background-color: #312e81;
+    width: 100%; height: 100%;
+    object-fit: cover;
     transition: transform .6s ease;
 }
-.main-featured:hover .featured-img { transform: scale(1.03); }
+.main-featured:hover .featured-img-tag { transform: scale(1.03); }
 
 .main-featured .featured-overlay {
     position: absolute; inset: 0;
@@ -535,13 +535,12 @@ input { font-family: inherit; }
     height: 160px; overflow: hidden;
     border-radius: var(--radius) var(--radius) 0 0;
 }
-.side-featured .featured-img {
+.side-featured .featured-img-tag {
     width: 100%; height: 100%;
-    background-size: cover; background-position: center;
-    background-color: #4c1d95;
+    object-fit: cover;
     transition: transform .6s ease;
 }
-.side-featured:hover .featured-img { transform: scale(1.05); }
+.side-featured:hover .featured-img-tag { transform: scale(1.05); }
 
 .side-featured .featured-body { padding: 18px; flex: 1; display: flex; flex-direction: column; }
 .side-featured .featured-title {
@@ -1064,13 +1063,13 @@ input { font-family: inherit; }
    DARK MODE IMAGE DIMMING
    ============================================ */
 [data-theme="dark"] .news-card-img img,
-[data-theme="dark"] .featured-img,
+[data-theme="dark"] .featured-img-tag,
 [data-theme="dark"] .reader-hero-img {
     filter: brightness(0.85);
     transition: filter var(--transition);
 }
 [data-theme="dark"] .news-card:hover .news-card-img img,
-[data-theme="dark"] .featured-card:hover .featured-img {
+[data-theme="dark"] .featured-card:hover .featured-img-tag {
     filter: brightness(1);
 }
 
