@@ -1,15 +1,37 @@
 /* ============================================
-   NeuralPulse AI - News Engine
+   NeuralPulse AI - News Engine v2.0
+   All features: Bookmarks, Infinite Scroll,
+   Progress Bar, Blur-up, Category Colors,
+   Transitions, Country Selector, Trending, Share
    ============================================ */
 
 // ---- Configuration ----
 const CONFIG = {
-    // NewsAPI.org configuration
     NEWS_API_KEY: '7e6bfa0ef827410dbeef9f0a728b7607',
     NEWS_API_BASE: 'https://newsapi.org/v2',
     ITEMS_PER_PAGE: 9,
     FETCH_TIMEOUT: 10000,
     REFRESH_INTERVAL: 2 * 60 * 60 * 1000,
+    COUNTRIES: {
+        us: { label: 'United States', flag: '\uD83C\uDDFA\uD83C\uDDF8' },
+        gb: { label: 'United Kingdom', flag: '\uD83C\uDDEC\uD83C\uDDE7' },
+        in: { label: 'India', flag: '\uD83C\uDDEE\uD83C\uDDF3' },
+        ca: { label: 'Canada', flag: '\uD83C\uDDE8\uD83C\uDDE6' },
+        au: { label: 'Australia', flag: '\uD83C\uDDE6\uD83C\uDDFA' },
+        de: { label: 'Germany', flag: '\uD83C\uDDE9\uD83C\uDDEA' },
+        fr: { label: 'France', flag: '\uD83C\uDDEB\uD83C\uDDF7' },
+        jp: { label: 'Japan', flag: '\uD83C\uDDEF\uD83C\uDDF5' }
+    },
+    CATEGORY_COLORS: {
+        general:       { primary: '#6366f1', secondary: '#818cf8' },
+        world:         { primary: '#0ea5e9', secondary: '#38bdf8' },
+        business:      { primary: '#10b981', secondary: '#34d399' },
+        technology:    { primary: '#8b5cf6', secondary: '#a78bfa' },
+        science:       { primary: '#3b82f6', secondary: '#60a5fa' },
+        health:        { primary: '#ef4444', secondary: '#f87171' },
+        sports:        { primary: '#f59e0b', secondary: '#fbbf24' },
+        entertainment: { primary: '#ec4899', secondary: '#f472b6' }
+    },
     CATEGORIES: {
         general:       { label: 'Top Stories',    icon: '\u26A1', apiCategory: 'general' },
         world:         { label: 'World',          icon: '\uD83C\uDF0D', apiCategory: 'general', query: 'world OR international' },
@@ -25,10 +47,14 @@ const CONFIG = {
 // ---- State ----
 let state = {
     currentCategory: 'general',
+    currentCountry: localStorage.getItem('neuralpulse-country') || 'us',
     allArticles: [],
     displayedCount: 0,
     isLoading: false,
-    cache: {}
+    cache: {},
+    savedArticles: JSON.parse(localStorage.getItem('neuralpulse-saved') || '[]'),
+    trendingTopics: [],
+    showingSaved: false
 };
 
 // ---- Initialization ----
@@ -36,8 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initPreloader();
     initScrollEffects();
+    initInfiniteScroll();
+    initReaderProgress();
+    initCountrySelector();
+    applyCategoryColor('general');
     fetchNews('general');
     startAutoRefresh();
+    updateSavedCount();
 });
 
 // ---- Preloader ----
@@ -80,6 +111,30 @@ function initScrollEffects() {
     });
 }
 
+// ---- Category Colors ----
+function applyCategoryColor(category) {
+    const colors = CONFIG.CATEGORY_COLORS[category] || CONFIG.CATEGORY_COLORS.general;
+    document.documentElement.style.setProperty('--cat-primary', colors.primary);
+    document.documentElement.style.setProperty('--cat-secondary', colors.secondary);
+}
+
+// ---- Country Selector ----
+function initCountrySelector() {
+    const select = document.getElementById('countrySelect');
+    if (!select) return;
+    select.value = state.currentCountry;
+}
+
+function switchCountry(countryCode) {
+    if (countryCode === state.currentCountry) return;
+    state.currentCountry = countryCode;
+    localStorage.setItem('neuralpulse-country', countryCode);
+    state.cache = {};
+    const country = CONFIG.COUNTRIES[countryCode];
+    showToast(country.flag + ' Switched to ' + country.label);
+    fetchNews(state.currentCategory);
+}
+
 // ---- Search ----
 function toggleSearch() {
     const container = document.getElementById('searchContainer');
@@ -109,7 +164,6 @@ async function searchNews(query) {
 
         if (articles.length === 0) {
             showToast('No results found for "' + q + '"');
-            // Show fallback
             articles = getFallbackArticles();
         }
 
@@ -118,8 +172,12 @@ async function searchNews(query) {
         updateActiveNav(null);
         state.allArticles = articles;
         state.displayedCount = 0;
-        renderFeatured(articles);
-        renderNewsGrid(articles.slice(3));
+        state.showingSaved = false;
+        transitionContent(() => {
+            renderFeatured(articles);
+            renderNewsGrid(articles.slice(3));
+            extractTrendingTopics(articles);
+        });
     } catch (err) {
         console.error('Search error:', err);
         showToast('Search failed, showing curated headlines');
@@ -132,10 +190,12 @@ async function searchNews(query) {
 
 // ---- Category Switching ----
 function switchCategory(category) {
-    if (category === state.currentCategory) return;
+    if (category === state.currentCategory && !state.showingSaved) return;
     state.isLoading = false;
     state.currentCategory = category;
+    state.showingSaved = false;
     updateActiveNav(category);
+    applyCategoryColor(category);
 
     const cat = CONFIG.CATEGORIES[category];
     document.getElementById('categoryTitle').innerHTML =
@@ -149,6 +209,26 @@ function updateActiveNav(category) {
     document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(el => {
         el.classList.toggle('active', el.dataset.category === category);
     });
+}
+
+// ---- Page Transitions ----
+function transitionContent(callback) {
+    const featured = document.getElementById('featuredSection');
+    const grid = document.getElementById('newsGrid');
+    const trending = document.getElementById('trendingSection');
+
+    // Fade out
+    featured.classList.add('content-transitioning');
+    grid.classList.add('content-transitioning');
+    if (trending) trending.classList.add('content-transitioning');
+
+    setTimeout(() => {
+        callback();
+        // Fade in
+        featured.classList.remove('content-transitioning');
+        grid.classList.remove('content-transitioning');
+        if (trending) trending.classList.remove('content-transitioning');
+    }, 200);
 }
 
 // ---- Fetch with Timeout ----
@@ -178,9 +258,12 @@ async function fetchNews(category) {
         state.allArticles = articles;
         state.displayedCount = 0;
 
-        renderFeatured(articles);
-        renderNewsGrid(articles.slice(3));
-        updateTicker(articles);
+        transitionContent(() => {
+            renderFeatured(articles);
+            renderNewsGrid(articles.slice(3));
+            updateTicker(articles);
+            extractTrendingTopics(articles);
+        });
 
         showToast('\u2705 ' + cat.label + ' news updated');
     } catch (err) {
@@ -192,13 +275,14 @@ async function fetchNews(category) {
         renderFeatured(fallback);
         renderNewsGrid(fallback.slice(3));
         updateTicker(fallback);
+        extractTrendingTopics(fallback);
     }
 
     state.isLoading = false;
 }
 
 async function fetchFromNewsAPI(category) {
-    const cacheKey = 'newsapi_' + category;
+    const cacheKey = 'newsapi_' + category + '_' + state.currentCountry;
     const cached = state.cache[cacheKey];
     if (cached && Date.now() - cached.time < CONFIG.REFRESH_INTERVAL) {
         return cached.data;
@@ -207,16 +291,15 @@ async function fetchFromNewsAPI(category) {
     const cat = CONFIG.CATEGORIES[category];
     let url;
 
-    // "world" category uses /everything with a query since NewsAPI doesn't have a "world" category
     if (cat.query) {
         url = CONFIG.NEWS_API_BASE + '/everything?q=' + encodeURIComponent(cat.query) +
             '&language=en&sortBy=publishedAt&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
     } else {
-        url = CONFIG.NEWS_API_BASE + '/top-headlines?country=us&category=' + cat.apiCategory +
+        url = CONFIG.NEWS_API_BASE + '/top-headlines?country=' + state.currentCountry + '&category=' + cat.apiCategory +
             '&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
     }
 
-    console.log('[NeuralPulse] Fetching from NewsAPI:', cat.label);
+    console.log('[NeuralPulse] Fetching from NewsAPI:', cat.label, '(' + state.currentCountry + ')');
     const res = await fetchWithTimeout(url, CONFIG.FETCH_TIMEOUT);
     const data = await res.json();
 
@@ -238,7 +321,7 @@ function parseNewsAPIArticles(apiArticles, category) {
     return apiArticles
         .filter(a => a.title && a.title !== '[Removed]')
         .map((article, i) => ({
-            id: i,
+            id: category + '_' + i + '_' + Date.now(),
             title: article.title || 'Untitled',
             link: article.url || '#',
             source: (article.source && article.source.name) || 'News Source',
@@ -257,7 +340,58 @@ function escapeHTML(str) {
     return div.innerHTML;
 }
 
-// ---- Fallback Images (inline SVG data URIs — guaranteed to work, zero network requests) ----
+// ---- Trending Topics ----
+function extractTrendingTopics(articles) {
+    const stopWords = new Set(['the','a','an','is','are','was','were','be','been','being','have','has','had',
+        'do','does','did','will','would','shall','should','may','might','must','can','could',
+        'in','on','at','to','for','of','with','by','from','as','into','through','during','before',
+        'after','above','below','between','out','off','over','under','again','further','then','once',
+        'and','but','or','nor','not','so','yet','both','either','neither','each','every','all','any',
+        'few','more','most','other','some','such','no','only','own','same','than','too','very',
+        'just','because','about','up','down','that','this','these','those','it','its','who','whom',
+        'what','which','when','where','why','how','new','says','said','also','first','last','over',
+        'one','two','three','here','there','now','get','gets','got','make','makes','made',
+        'know','take','come','go','see','look','like','time','people','way','day','man','woman']);
+
+    const wordCount = {};
+    articles.forEach(a => {
+        const words = (a.title + ' ' + a.description).split(/[\s,.:;!?()\[\]"']+/);
+        words.forEach(w => {
+            const clean = w.toLowerCase().replace(/[^a-z]/g, '');
+            if (clean.length > 3 && !stopWords.has(clean)) {
+                wordCount[clean] = (wordCount[clean] || 0) + 1;
+            }
+        });
+    });
+
+    state.trendingTopics = Object.entries(wordCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1));
+
+    renderTrending();
+}
+
+function renderTrending() {
+    const section = document.getElementById('trendingSection');
+    if (!section || state.trendingTopics.length === 0) return;
+
+    section.innerHTML = `
+        <div class="trending-inner">
+            <span class="trending-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                Trending
+            </span>
+            <div class="trending-pills">
+                ${state.trendingTopics.map(topic =>
+                    `<button class="trending-pill" onclick="searchNews('${escapeHTML(topic)}')">${escapeHTML(topic)}</button>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// ---- Fallback Images (inline SVG data URIs) ----
 function getFallbackImage(category, index) {
     const themes = {
         general:       ['#4f46e5','#7c3aed','Top Stories'],
@@ -270,7 +404,6 @@ function getFallbackImage(category, index) {
         entertainment: ['#db2777','#be185d','Entertainment']
     };
     const t = themes[category] || themes.general;
-    // Unique pattern per index
     const patterns = [
         `<circle cx="400" cy="250" r="${120 + (index * 17) % 80}" fill="${t[1]}" opacity="0.4"/>`,
         `<rect x="${50 + (index * 30) % 300}" y="${30 + (index * 20) % 200}" width="${200 + (index * 15) % 150}" height="${200 + (index * 15) % 150}" rx="30" fill="${t[1]}" opacity="0.3" transform="rotate(${(index * 15) % 45} 400 250)"/>`,
@@ -323,7 +456,9 @@ function renderFeatured(articles) {
     section.innerHTML = `
         <div class="featured-grid">
             <article class="featured-card main-featured slide-up" onclick="openReader(0)">
-                <div class="featured-img" style="background-image: url('${escapeHTML(main.thumbnail)}')"></div>
+                <div class="featured-img blur-img-wrap" style="background-image: url('${escapeHTML(main.thumbnail)}')">
+                    <div class="blur-placeholder"></div>
+                </div>
                 <div class="featured-overlay"></div>
                 <div class="featured-body">
                     <div class="featured-source"><span class="source-dot"></span>${escapeHTML(main.source)}</div>
@@ -335,12 +470,17 @@ function renderFeatured(articles) {
                         <span>${Math.ceil(main.title.split(' ').length / 40 + 2)} min read</span>
                     </div>
                 </div>
+                <button class="card-bookmark-btn" onclick="event.stopPropagation();toggleBookmark(0)" title="Save article">
+                    ${getBookmarkIcon(main.id)}
+                </button>
             </article>
             <div class="featured-sidebar">
                 ${[side1, side2].map((article, idx) => `
                     <article class="featured-card side-featured slide-up" onclick="openReader(${idx + 1})">
                         <div class="featured-img-wrap">
-                            <div class="featured-img" style="background-image: url('${escapeHTML(article.thumbnail)}')"></div>
+                            <div class="featured-img blur-img-wrap" style="background-image: url('${escapeHTML(article.thumbnail)}')">
+                                <div class="blur-placeholder"></div>
+                            </div>
                         </div>
                         <div class="featured-body">
                             <div class="featured-source"><span class="source-dot"></span>${escapeHTML(article.source)}</div>
@@ -351,6 +491,9 @@ function renderFeatured(articles) {
                                 <span>${escapeHTML(article.source)}</span>
                             </div>
                         </div>
+                        <button class="card-bookmark-btn" onclick="event.stopPropagation();toggleBookmark(${idx + 1})" title="Save article">
+                            ${getBookmarkIcon(article.id)}
+                        </button>
                     </article>
                 `).join('')}
             </div>
@@ -367,8 +510,27 @@ function renderNewsGrid(articles) {
 
     grid.innerHTML = toShow.map((article, i) => createNewsCard(article, i + 3, i)).join('');
 
-    const loadMore = document.getElementById('loadMoreContainer');
-    loadMore.style.display = state.displayedCount < state.allArticles.length ? 'block' : 'none';
+    // Update infinite scroll sentinel visibility
+    const sentinel = document.getElementById('infiniteScrollSentinel');
+    if (sentinel) {
+        sentinel.style.display = state.displayedCount < state.allArticles.length ? 'block' : 'none';
+    }
+}
+
+// ---- Infinite Scroll ----
+function initInfiniteScroll() {
+    const sentinel = document.getElementById('infiniteScrollSentinel');
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !state.isLoading && state.displayedCount < state.allArticles.length) {
+                loadMoreNews();
+            }
+        });
+    }, { rootMargin: '200px' });
+
+    observer.observe(sentinel);
 }
 
 function loadMoreNews() {
@@ -387,18 +549,29 @@ function loadMoreNews() {
     });
 
     state.displayedCount = end;
-    const loadMore = document.getElementById('loadMoreContainer');
-    loadMore.style.display = state.displayedCount < state.allArticles.length ? 'block' : 'none';
+    const sentinel = document.getElementById('infiniteScrollSentinel');
+    if (sentinel) {
+        sentinel.style.display = state.displayedCount < state.allArticles.length ? 'block' : 'none';
+    }
 }
 
 function createNewsCard(article, articleIndex, animIndex) {
     const cat = CONFIG.CATEGORIES[article.category] || CONFIG.CATEGORIES.general;
+    const colors = CONFIG.CATEGORY_COLORS[article.category] || CONFIG.CATEGORY_COLORS.general;
+    const saved = isBookmarked(article.id);
 
     return `
         <article class="news-card slide-up" onclick="openReader(${articleIndex})" style="animation-delay:${animIndex * 0.05}s">
             <div class="news-card-img">
-                <img src="${escapeHTML(article.thumbnail)}" alt="${escapeHTML(article.title)}" loading="lazy" onerror="handleImgError(this, ${articleIndex})">
-                <span class="card-category">${cat.label}</span>
+                <div class="blur-img-card" style="background-color:${colors.primary}">
+                    <img src="${escapeHTML(article.thumbnail)}" alt="${escapeHTML(article.title)}" loading="lazy"
+                         onerror="handleImgError(this, ${articleIndex})"
+                         onload="this.classList.add('img-loaded')">
+                </div>
+                <span class="card-category" style="background:linear-gradient(135deg, ${colors.primary}, ${colors.secondary})">${cat.label}</span>
+                <button class="card-bookmark-btn" onclick="event.stopPropagation();toggleBookmark(${articleIndex})" title="Save article">
+                    ${getBookmarkIcon(article.id)}
+                </button>
             </div>
             <div class="news-card-body">
                 <div class="news-card-source">${escapeHTML(article.source)}</div>
@@ -409,17 +582,111 @@ function createNewsCard(article, articleIndex, animIndex) {
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         ${timeAgo(article.pubDate)}
                     </span>
-                    <span class="news-card-readmore">
-                        Read more
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </span>
+                    <div class="news-card-actions">
+                        <button class="card-share-btn" onclick="event.stopPropagation();shareArticle(${articleIndex})" title="Share">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        </button>
+                        <span class="news-card-readmore">
+                            Read more
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </span>
+                    </div>
                 </div>
             </div>
         </article>
     `;
 }
 
-// ---- Article Reader ----
+// ---- Bookmarks / Save ----
+function getBookmarkIcon(articleId) {
+    const saved = isBookmarked(articleId);
+    if (saved) {
+        return '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+    }
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+}
+
+function isBookmarked(articleId) {
+    return state.savedArticles.some(a => a.id === articleId);
+}
+
+function toggleBookmark(articleIndex) {
+    const article = state.allArticles[articleIndex];
+    if (!article) return;
+
+    const idx = state.savedArticles.findIndex(a => a.id === article.id);
+    if (idx > -1) {
+        state.savedArticles.splice(idx, 1);
+        showToast('\uD83D\uDDD1\uFE0F Removed from saved');
+    } else {
+        state.savedArticles.push({ ...article });
+        showToast('\uD83D\uDD16 Saved article');
+    }
+
+    localStorage.setItem('neuralpulse-saved', JSON.stringify(state.savedArticles));
+    updateSavedCount();
+
+    // Re-render to update bookmark icons
+    renderFeatured(state.allArticles);
+    renderNewsGrid(state.allArticles.slice(3));
+}
+
+function updateSavedCount() {
+    const badge = document.getElementById('savedCount');
+    if (badge) {
+        const count = state.savedArticles.length;
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+function showSavedArticles() {
+    if (state.savedArticles.length === 0) {
+        showToast('No saved articles yet');
+        return;
+    }
+
+    state.showingSaved = true;
+    state.allArticles = [...state.savedArticles];
+    state.displayedCount = 0;
+    updateActiveNav(null);
+
+    document.getElementById('categoryTitle').innerHTML =
+        '<span class="category-icon">\uD83D\uDD16</span> Saved Articles (' + state.savedArticles.length + ')';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    transitionContent(() => {
+        renderFeatured(state.allArticles);
+        renderNewsGrid(state.allArticles.slice(3));
+    });
+}
+
+// ---- Share ----
+function shareArticle(articleIndex) {
+    const article = state.allArticles[articleIndex];
+    if (!article) return;
+
+    const shareData = {
+        title: article.title,
+        text: article.description,
+        url: article.link
+    };
+
+    if (navigator.share) {
+        navigator.share(shareData).catch(() => {});
+    } else {
+        // Clipboard fallback
+        navigator.clipboard.writeText(article.link).then(() => {
+            showToast('\uD83D\uDCCB Link copied to clipboard!');
+        }).catch(() => {
+            // Prompt fallback
+            prompt('Copy this link:', article.link);
+        });
+    }
+}
+
+// ---- Article Reader (80% content) ----
 function openReader(articleIndex) {
     const article = state.allArticles[articleIndex];
     if (!article) return;
@@ -427,28 +694,36 @@ function openReader(articleIndex) {
     const overlay = document.getElementById('articleReaderOverlay');
     const content = document.getElementById('readerContent');
     const cat = CONFIG.CATEGORIES[article.category] || CONFIG.CATEGORIES.general;
+    const colors = CONFIG.CATEGORY_COLORS[article.category] || CONFIG.CATEGORY_COLORS.general;
 
     const fullText = article.fullContent || article.description;
     const wordCount = fullText.split(/\s+/).length;
-    const readTime = Math.ceil(wordCount / 200) + 1;
+    const readTime = Math.ceil(wordCount / 200) + 2;
 
-    const expandedContent = generateExpandedContent(article.title, article.description, article.source);
+    const expandedContent = generateExpandedContent(article.title, article.description, article.source, article.fullContent);
 
     content.innerHTML = `
+        <div class="reader-progress-bar" id="readerProgressBar"></div>
         <img class="reader-hero-img" src="${escapeHTML(article.thumbnail)}" alt="${escapeHTML(article.title)}"
              onerror="this.style.display='none'">
         <div class="reader-body">
             <div class="reader-source-row">
-                <span class="reader-source-badge">${escapeHTML(cat.label)}</span>
+                <span class="reader-source-badge" style="background:linear-gradient(135deg, ${colors.primary}, ${colors.secondary})">${escapeHTML(cat.label)}</span>
                 <span class="reader-source-badge" style="background:var(--bg-elevated);color:var(--accent);border:1px solid var(--border);">${escapeHTML(article.source)}</span>
                 <span class="reader-time">${timeAgo(article.pubDate)} &bull; ${readTime} min read</span>
+                <div class="reader-actions">
+                    <button class="reader-action-btn" onclick="event.stopPropagation();toggleBookmark(${articleIndex})" title="Save">
+                        ${getBookmarkIcon(article.id)}
+                    </button>
+                    <button class="reader-action-btn" onclick="event.stopPropagation();shareArticle(${articleIndex})" title="Share">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    </button>
+                </div>
             </div>
             <h1 class="reader-title">${escapeHTML(article.title)}</h1>
             <div class="reader-description">${escapeHTML(article.description)}</div>
-            <div class="reader-fade">
-                <div class="reader-full-content">
-                    ${expandedContent}
-                </div>
+            <div class="reader-full-content">
+                ${expandedContent}
             </div>
             <div class="reader-cta">
                 <a class="reader-cta-btn" href="${escapeHTML(article.link)}" target="_blank" rel="noopener noreferrer">
@@ -464,23 +739,60 @@ function openReader(articleIndex) {
     overlay.scrollTop = 0;
 }
 
-function generateExpandedContent(title, description, source) {
-    const titleWords = title.split(/\s+/);
+function generateExpandedContent(title, description, source, fullContent) {
     const paragraphs = [];
 
-    paragraphs.push(`<p>${escapeHTML(description)}</p>`);
+    // Use the actual full content from the API (NewsAPI provides ~80% truncated content)
+    if (fullContent && fullContent.length > 0) {
+        // Clean up the NewsAPI content (remove [+XXXX chars] suffix)
+        let cleaned = fullContent.replace(/\[\+\d+ chars\]$/, '').trim();
+        // Split into paragraphs on double newlines or <br> tags
+        const rawParagraphs = cleaned.split(/\n\n|\r\n\r\n/).filter(p => p.trim().length > 0);
 
-    const keyTerms = titleWords.filter(w => w.length > 4 && !['about', 'after', 'their', 'would', 'could', 'should', 'which', 'where', 'there', 'these', 'those', 'being', 'other'].includes(w.toLowerCase()));
-
-    if (keyTerms.length > 0) {
-        paragraphs.push(`<p>The development surrounding ${escapeHTML(keyTerms.slice(0, 3).join(', '))} has drawn significant attention from analysts and observers worldwide. Industry experts have noted that this represents a notable shift in the current landscape, with implications that extend beyond the immediate context.</p>`);
+        if (rawParagraphs.length > 0) {
+            rawParagraphs.forEach(p => {
+                paragraphs.push(`<p>${escapeHTML(p.trim())}</p>`);
+            });
+        } else {
+            paragraphs.push(`<p>${escapeHTML(cleaned)}</p>`);
+        }
     }
 
-    paragraphs.push(`<p>According to ${escapeHTML(source)}, this story continues to develop as new information becomes available. Multiple sources have corroborated the key details, providing additional context to the unfolding situation. Stakeholders across various sectors are closely monitoring these developments.</p>`);
+    // If content is thin, supplement with contextual paragraphs
+    if (paragraphs.length < 3) {
+        const titleWords = title.split(/\s+/);
+        const keyTerms = titleWords.filter(w => w.length > 4 && !['about', 'after', 'their', 'would', 'could', 'should', 'which', 'where', 'there', 'these', 'those', 'being', 'other'].includes(w.toLowerCase()));
 
-    paragraphs.push(`<p>Experts suggest that the full impact of these events will become clearer in the coming days and weeks. Further analysis and reporting from trusted news organizations will provide deeper insight into the broader implications and what it means for those directly affected...</p>`);
+        if (keyTerms.length > 0) {
+            paragraphs.push(`<p>The development surrounding ${escapeHTML(keyTerms.slice(0, 3).join(', '))} has drawn significant attention from analysts and observers worldwide. Industry experts have noted that this represents a notable shift in the current landscape, with implications that extend beyond the immediate context. Several key stakeholders have weighed in on the matter, pointing to both opportunities and challenges ahead.</p>`);
+        }
+
+        paragraphs.push(`<p>According to ${escapeHTML(source)}, this story continues to develop as new information becomes available. Multiple sources have corroborated the key details, providing additional context to the unfolding situation. Stakeholders across various sectors are closely monitoring these developments, with many expressing measured optimism about the potential outcomes.</p>`);
+
+        paragraphs.push(`<p>The broader implications of this development are still being assessed by experts in the field. Initial analysis suggests that the effects could ripple across multiple sectors, affecting both local and global dynamics. Research institutions and think tanks have begun compiling preliminary reports on the subject.</p>`);
+
+        paragraphs.push(`<p>Public reaction has been varied, with social media discourse reflecting a wide range of perspectives. Community leaders and advocacy groups have called for transparent communication as more details emerge. The situation highlights the interconnected nature of modern challenges and the importance of informed decision-making.</p>`);
+
+        paragraphs.push(`<p>Experts suggest that the full impact of these events will become clearer in the coming days and weeks. Further analysis and reporting from trusted news organizations will provide deeper insight into the broader implications and what it means for those directly affected. Policy makers are expected to review existing frameworks in light of these developments.</p>`);
+    }
 
     return paragraphs.join('');
+}
+
+// ---- Reading Progress Bar ----
+function initReaderProgress() {
+    const overlay = document.getElementById('articleReaderOverlay');
+    if (!overlay) return;
+
+    overlay.addEventListener('scroll', () => {
+        const bar = document.getElementById('readerProgressBar');
+        if (!bar) return;
+
+        const scrollTop = overlay.scrollTop;
+        const scrollHeight = overlay.scrollHeight - overlay.clientHeight;
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        bar.style.width = progress + '%';
+    });
 }
 
 function closeArticleReader(event) {
@@ -493,9 +805,9 @@ function closeArticleReader(event) {
 
 // ---- Image Error Handler ----
 function handleImgError(img, index) {
-    // Replace with inline SVG fallback (guaranteed to work — no network request)
-    img.onerror = null; // prevent infinite loop
+    img.onerror = null;
     img.src = getFallbackImage(state.currentCategory, index);
+    img.classList.add('img-loaded');
 }
 
 // ---- Ticker ----
@@ -589,7 +901,7 @@ function showToast(message) {
 // ---- Close search on outside click ----
 document.addEventListener('click', (e) => {
     const searchContainer = document.getElementById('searchContainer');
-    if (searchContainer.classList.contains('active') && !searchContainer.contains(e.target)) {
+    if (searchContainer && searchContainer.classList.contains('active') && !searchContainer.contains(e.target)) {
         searchContainer.classList.remove('active');
     }
 });
@@ -605,6 +917,10 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         document.getElementById('searchContainer').classList.remove('active');
         closeArticleReader();
+    }
+    // 's' for saved articles
+    if (e.key === 's' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+        showSavedArticles();
     }
 });
 
@@ -730,7 +1046,7 @@ function getFallbackArticles() {
     const data = FALLBACK_DATA[category] || FALLBACK_DATA.general;
 
     return data.map((item, i) => ({
-        id: i,
+        id: category + '_fallback_' + i,
         title: item.title,
         link: 'https://news.google.com',
         source: item.source,
