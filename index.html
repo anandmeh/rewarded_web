@@ -1,1182 +1,269 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mehrotra Retail - Premium Sarees & Fabrics</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #FFF8F0;
-            background-image:
-                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,215,0,.03) 35px, rgba(255,215,0,.03) 70px);
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        /* Header Styles */
-        header {
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-            padding: 20px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 3px solid #FFD700;
-        }
-
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo::before {
-            content: '✦';
-            color: #FFD700;
-            animation: sparkle 2s infinite;
-        }
-
-        .logo::after {
-            content: '✦';
-            color: #FFD700;
-            animation: sparkle 2s infinite 1s;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            padding: 8px 16px;
-            border-radius: 5px;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(139,0,0,0.7), rgba(139,0,0,0.7)),
-                        url('https://picsum.photos/1600/600?random=1') center/cover;
-            background-size: cover;
-            background-position: center;
-            height: 450px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
-            position: relative;
-            border-bottom: 5px solid #FFD700;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 10px;
-            background: repeating-linear-gradient(
-                90deg,
-                #FFD700 0px,
-                #FFD700 20px,
-                #FF6B35 20px,
-                #FF6B35 40px,
-                #4ECDC4 40px,
-                #4ECDC4 60px
-            );
-        }
-
-        .hero-content h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            animation: fadeInUp 1s ease;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-            color: #FFD700;
-            font-weight: 900;
-        }
-
-        .hero-content p {
-            font-size: 22px;
-            animation: fadeInUp 1s ease 0.2s backwards;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            font-weight: 500;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        .section {
-            margin-bottom: 60px;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 36px;
-            margin-bottom: 40px;
-            color: #8B0000;
-            position: relative;
-            padding-bottom: 15px;
-        }
-
-        .section-title::after {
-            content: '✦';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #FFD700;
-            font-size: 24px;
-        }
-
-        .section-title::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #8B0000, #DC143C, #FFD700, #DC143C, #8B0000, transparent);
-        }
-
-        /* Product Grid */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            border: 2px solid transparent;
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(220, 20, 60, 0.3);
-            border: 2px solid #FFD700;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-image::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
-        }
-
-        .product-image::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255,255,255,0.1);
-            transform: rotate(45deg);
-            transition: all 0.6s ease;
-        }
-
-        .product-card:hover .product-image::before {
-            left: 100%;
-        }
-
-        .product-info {
-            padding: 20px;
-        }
-
-        .product-name {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .product-description {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .product-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(220, 20, 60, 0.3);
-            border: 1px solid #FFD700;
-        }
-
-        /* Special Features Section */
-        .features {
-            background: linear-gradient(135deg, #FFF 0%, #FFF8F0 100%);
-            border-radius: 15px;
-            padding: 40px;
-            margin: 60px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 3px solid #FFD700;
-            position: relative;
-        }
-
-        .features::before {
-            content: '❋';
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 30px;
-            color: #DC143C;
-            opacity: 0.3;
-        }
-
-        .features::after {
-            content: '❋';
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 30px;
-            color: #DC143C;
-            opacity: 0.3;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .feature-item {
-            text-align: center;
-            padding: 20px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .feature-item:hover {
-            background: #f9f9f9;
-            transform: scale(1.05);
-        }
-
-        .feature-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-
-        .feature-item h3 {
-            color: #8B0000;
-            margin-bottom: 10px;
-        }
-
-        /* Footer */
-        footer {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 40px 0 20px;
-            text-align: center;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            color: #DC143C;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-links {
-                gap: 15px;
-            }
-
-            .nav-links a {
-                font-size: 14px;
-                padding: 6px 12px;
-            }
-
-            .logo {
-                font-size: 22px;
-            }
-
-            .hero-content h1 {
-                font-size: 32px;
-            }
-
-            .hero-content p {
-                font-size: 18px;
-            }
-
-            .section-title {
-                font-size: 28px;
-            }
-        }
-
-        /* Interactive hover effects */
-        .btn-explore {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            color: #8B0000;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 2px solid white;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
-        }
-
-        .btn-explore:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(255,215,0,0.6);
-            background: linear-gradient(135deg, #FFA500 0%, #FFD700 100%);
-        }
-
-        /* AI Chatbot Styles */
-        .chatbot-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 10000;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .chatbot-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(220, 20, 60, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .chatbot-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(220, 20, 60, 0.6);
-        }
-
-        .chatbot-button.active {
-            transform: scale(0.9);
-        }
-
-        .chatbot-pulse {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: rgba(220, 20, 60, 0.4);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1.5);
-                opacity: 0;
-            }
-        }
-
-        .chatbot-window {
-            position: absolute;
-            bottom: 80px;
-            right: 0;
-            width: 350px;
-            height: 500px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            animation: slideUp 0.3s ease;
-        }
-
-        .chatbot-window.active {
-            display: flex;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .chatbot-header {
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .chatbot-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .chatbot-header-info h3 {
-            margin: 0;
-            font-size: 16px;
-        }
-
-        .chatbot-header-info p {
-            margin: 0;
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .chatbot-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f9f9f9;
-        }
-
-        .chatbot-message {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .chatbot-message.user {
-            flex-direction: row-reverse;
-        }
-
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .message-avatar.user-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            line-height: 1.5;
-            font-size: 14px;
-        }
-
-        .chatbot-message.user .message-bubble {
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            padding: 12px 16px;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #8B0000;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.7;
-            }
-            30% {
-                transform: translateY(-10px);
-                opacity: 1;
-            }
-        }
-
-        .chatbot-input-area {
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chatbot-input {
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            padding: 10px 15px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-
-        .chatbot-input:focus {
-            border-color: #DC143C;
-        }
-
-        .chatbot-send-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .chatbot-send-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .chatbot-send-btn:active {
-            transform: scale(0.95);
-        }
-
-        .quick-replies {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .quick-reply-btn {
-            padding: 8px 15px;
-            border: 1px solid #DC143C;
-            background: white;
-            color: #DC143C;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .quick-reply-btn:hover {
-            background: #DC143C;
-            color: white;
-        }
-
-        @media (max-width: 480px) {
-            .chatbot-window {
-                width: calc(100vw - 40px);
-                height: 70vh;
-            }
-        }
-    </style>
+    <title>NeuralPulse AI - Intelligent News Platform</title>
+    <meta name="description" content="AI-powered news aggregation platform delivering breaking news, top stories, and intelligent insights from around the world.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x26A1;</text></svg>">
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <nav>
-            <div class="logo">🛍️ Mehrotra Retail</div>
-            <ul class="nav-links">
-                <li><a href="#sarees">Sarees</a></li>
-                <li><a href="#suiting">Suiting</a></li>
-                <li><a href="#shirting">Shirting</a></li>
-                <li><a href="#fabrics">Fabrics</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Welcome to Mehrotra Retail</h1>
-            <p>Your Destination for Premium Sarees & Fine Fabrics</p>
-            <a href="#sarees" class="btn-explore">Explore Collection</a>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-inner">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <svg class="brain-icon" viewBox="0 0 64 64" width="48" height="48">
+                <path d="M32 4C18 4 8 14 8 28c0 10 6 18 14 22v10h20V50c8-4 14-12 14-22C56 14 46 4 32 4z" fill="none" stroke="url(#grad)" stroke-width="2.5"/>
+                <path d="M24 28c0-4 4-8 8-8s8 4 8 8-4 8-8 8" fill="none" stroke="url(#grad)" stroke-width="2"/>
+                <path d="M28 20v-6M36 20v-6M22 30h-6M42 30h6M26 38l-4 4M38 38l4 4" stroke="url(#grad)" stroke-width="1.5" stroke-linecap="round"/>
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366f1"/>
+                        <stop offset="50%" style="stop-color:#8b5cf6"/>
+                        <stop offset="100%" style="stop-color:#ec4899"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <p class="preloader-text">NeuralPulse AI</p>
+            <div class="loading-bar"><div class="loading-bar-fill"></div></div>
         </div>
-    </section>
-
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Sarees Section -->
-        <section id="sarees" class="section">
-            <h2 class="section-title">Exquisite Sarees</h2>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=2');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Silk Sarees</h3>
-                        <p class="product-description">Luxurious pure silk sarees with intricate designs and vibrant colors. Perfect for weddings and special occasions.</p>
-                        <span class="product-badge">Premium Quality</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=3');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Designer Sarees</h3>
-                        <p class="product-description">Contemporary designs with traditional elegance. Hand-picked collection from renowned designers.</p>
-                        <span class="product-badge">Exclusive</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=4');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Cotton Sarees</h3>
-                        <p class="product-description">Comfortable and elegant cotton sarees for daily wear. Breathable fabric with beautiful prints.</p>
-                        <span class="product-badge">Comfort Wear</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=5');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Banarasi Sarees</h3>
-                        <p class="product-description">Traditional Banarasi sarees with gold and silver brocade. Heritage craftsmanship at its finest.</p>
-                        <span class="product-badge">Traditional</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Suiting Section -->
-        <section id="suiting" class="section">
-            <h2 class="section-title">Premium Suiting</h2>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=6');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Formal Suiting</h3>
-                        <p class="product-description">High-quality formal suiting fabrics for the modern professional. Wrinkle-resistant and durable.</p>
-                        <span class="product-badge">Business Class</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=7');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Wedding Suiting</h3>
-                        <p class="product-description">Premium fabrics for your special day. Rich textures and elegant finishes for grooms.</p>
-                        <span class="product-badge">Wedding Special</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=8');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Designer Suiting</h3>
-                        <p class="product-description">Exclusive designer patterns and premium imported fabrics. Make a statement with style.</p>
-                        <span class="product-badge">Designer</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Shirting Section -->
-        <section id="shirting" class="section">
-            <h2 class="section-title">Fine Shirting Fabrics</h2>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=9');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Formal Shirts</h3>
-                        <p class="product-description">Crisp cotton and linen blends for formal wear. Easy to iron and maintain professional appearance.</p>
-                        <span class="product-badge">Office Wear</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=10');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Casual Shirting</h3>
-                        <p class="product-description">Trendy patterns and comfortable fabrics for casual occasions. Wide range of colors and prints.</p>
-                        <span class="product-badge">Casual</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=11');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Premium Cotton</h3>
-                        <p class="product-description">100% premium cotton shirting fabrics. Breathable, soft, and long-lasting quality.</p>
-                        <span class="product-badge">Pure Cotton</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Other Fabrics Section -->
-        <section id="fabrics" class="section">
-            <h2 class="section-title">Other Premium Fabrics</h2>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=12');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Kurta Fabrics</h3>
-                        <p class="product-description">Traditional and modern kurta materials. Perfect for ethnic wear and festive occasions.</p>
-                        <span class="product-badge">Ethnic</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=13');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Dress Materials</h3>
-                        <p class="product-description">Complete dress material sets with matching dupattas. Ready to stitch collections.</p>
-                        <span class="product-badge">Complete Set</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=14');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Fancy Fabrics</h3>
-                        <p class="product-description">Latest designer fabrics with embellishments and embroidery. Unique patterns for special occasions.</p>
-                        <span class="product-badge">Designer</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-image" style="background-image: url('https://picsum.photos/600/400?random=15');"></div>
-                    <div class="product-info">
-                        <h3 class="product-name">Blouse Materials</h3>
-                        <p class="product-description">Exclusive blouse fabrics to complement your sarees. Wide variety of colors and textures.</p>
-                        <span class="product-badge">Matching</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Features Section -->
-        <section class="features">
-            <h2 class="section-title">Why Choose Mehrotra Retail?</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">✅</div>
-                    <h3>Authentic Quality</h3>
-                    <p>100% genuine fabrics sourced directly from trusted manufacturers</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">💰</div>
-                    <h3>Best Prices</h3>
-                    <p>Competitive pricing with regular offers and discounts</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">🎁</div>
-                    <h3>Wide Collection</h3>
-                    <p>Extensive range of fabrics for every occasion and preference</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">🤝</div>
-                    <h3>Expert Guidance</h3>
-                    <p>Personalized assistance to help you choose the perfect fabric</p>
-                </div>
-            </div>
-        </section>
     </div>
 
-    <!-- Footer -->
-    <footer id="contact">
-        <div class="footer-content">
-            <h3>Mehrotra Retail</h3>
-            <p>Your trusted partner for premium fabrics since decades</p>
-            <div class="footer-links">
-                <a href="#sarees">Sarees</a>
-                <a href="#suiting">Suiting</a>
-                <a href="#shirting">Shirting</a>
-                <a href="#fabrics">All Fabrics</a>
+    <!-- Breaking News Ticker -->
+    <div class="breaking-ticker" id="breakingTicker">
+        <div class="ticker-badge">
+            <span class="live-dot"></span> BREAKING
+        </div>
+        <div class="ticker-wrap">
+            <div class="ticker-content" id="tickerContent">
+                Loading latest headlines...
             </div>
-            <p style="margin-top: 30px; opacity: 0.8;">📍 Visit us at our store | 📞 Contact us for bulk orders</p>
-            <p style="margin-top: 10px; font-size: 14px; opacity: 0.7;">© 2026 Mehrotra Retail. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Header / Navigation -->
+    <header class="header" id="header">
+        <nav class="nav-container">
+            <a href="#" class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+                <div class="logo-icon">
+                    <div class="logo-pulse"></div>
+                    <svg viewBox="0 0 32 32" width="28" height="28">
+                        <circle cx="16" cy="16" r="12" fill="none" stroke="url(#logoGrad)" stroke-width="1.5"/>
+                        <circle cx="16" cy="16" r="6" fill="none" stroke="url(#logoGrad)" stroke-width="1"/>
+                        <circle cx="16" cy="16" r="2" fill="url(#logoGrad)"/>
+                        <line x1="16" y1="4" x2="16" y2="10" stroke="url(#logoGrad)" stroke-width="1" stroke-linecap="round"/>
+                        <line x1="16" y1="22" x2="16" y2="28" stroke="url(#logoGrad)" stroke-width="1" stroke-linecap="round"/>
+                        <line x1="4" y1="16" x2="10" y2="16" stroke="url(#logoGrad)" stroke-width="1" stroke-linecap="round"/>
+                        <line x1="22" y1="16" x2="28" y2="16" stroke="url(#logoGrad)" stroke-width="1" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6366f1"/>
+                                <stop offset="100%" style="stop-color:#ec4899"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="logo-text">Neural<span class="logo-highlight">Pulse</span></span>
+                <span class="logo-badge">AI</span>
+            </a>
+
+            <div class="nav-center">
+                <button class="nav-link active" data-category="general" onclick="switchCategory('general')">Top Stories</button>
+                <button class="nav-link" data-category="world" onclick="switchCategory('world')">World</button>
+                <button class="nav-link" data-category="business" onclick="switchCategory('business')">Business</button>
+                <button class="nav-link" data-category="technology" onclick="switchCategory('technology')">Technology</button>
+                <button class="nav-link" data-category="science" onclick="switchCategory('science')">Science</button>
+                <button class="nav-link" data-category="health" onclick="switchCategory('health')">Health</button>
+                <button class="nav-link" data-category="sports" onclick="switchCategory('sports')">Sports</button>
+                <button class="nav-link" data-category="entertainment" onclick="switchCategory('entertainment')">Entertainment</button>
+            </div>
+
+            <div class="nav-actions">
+                <div class="search-container" id="searchContainer">
+                    <button class="icon-btn search-toggle" onclick="toggleSearch()" aria-label="Search">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                    </button>
+                    <div class="search-expanded">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search news..." onkeydown="if(event.key==='Enter')searchNews(this.value)">
+                        <button class="search-go" onclick="searchNews(document.getElementById('searchInput').value)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button class="icon-btn theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Nav -->
+        <div class="mobile-nav" id="mobileNav">
+            <button class="mobile-nav-link active" data-category="general" onclick="switchCategory('general');toggleMobileNav()">Top Stories</button>
+            <button class="mobile-nav-link" data-category="world" onclick="switchCategory('world');toggleMobileNav()">World</button>
+            <button class="mobile-nav-link" data-category="business" onclick="switchCategory('business');toggleMobileNav()">Business</button>
+            <button class="mobile-nav-link" data-category="technology" onclick="switchCategory('technology');toggleMobileNav()">Technology</button>
+            <button class="mobile-nav-link" data-category="science" onclick="switchCategory('science');toggleMobileNav()">Science</button>
+            <button class="mobile-nav-link" data-category="health" onclick="switchCategory('health');toggleMobileNav()">Health</button>
+            <button class="mobile-nav-link" data-category="sports" onclick="switchCategory('sports');toggleMobileNav()">Sports</button>
+            <button class="mobile-nav-link" data-category="entertainment" onclick="switchCategory('entertainment');toggleMobileNav()">Entertainment</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Category Title -->
+        <div class="category-header">
+            <div class="category-header-inner">
+                <h2 class="category-title" id="categoryTitle">
+                    <span class="category-icon">&#9889;</span>
+                    Top Stories
+                </h2>
+                <div class="category-actions">
+                    <button class="refresh-btn" onclick="refreshNews()" id="refreshBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                    <select class="sort-select" id="sortSelect" onchange="sortNews(this.value)">
+                        <option value="latest">Latest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="source">By Source</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured / Hero News -->
+        <section class="featured-section" id="featuredSection">
+            <div class="featured-grid">
+                <article class="featured-card main-featured skeleton-card" id="mainFeatured">
+                    <div class="skeleton-img"></div>
+                    <div class="skeleton-text"></div>
+                    <div class="skeleton-text short"></div>
+                </article>
+                <div class="featured-sidebar">
+                    <article class="featured-card side-featured skeleton-card">
+                        <div class="skeleton-img"></div>
+                        <div class="skeleton-text"></div>
+                    </article>
+                    <article class="featured-card side-featured skeleton-card">
+                        <div class="skeleton-img"></div>
+                        <div class="skeleton-text"></div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Grid -->
+        <section class="news-section">
+            <div class="news-grid" id="newsGrid">
+                <!-- Skeleton cards -->
+                <article class="news-card skeleton-card"><div class="skeleton-img"></div><div class="news-card-body"><div class="skeleton-text"></div><div class="skeleton-text short"></div></div></article>
+                <article class="news-card skeleton-card"><div class="skeleton-img"></div><div class="news-card-body"><div class="skeleton-text"></div><div class="skeleton-text short"></div></div></article>
+                <article class="news-card skeleton-card"><div class="skeleton-img"></div><div class="news-card-body"><div class="skeleton-text"></div><div class="skeleton-text short"></div></div></article>
+                <article class="news-card skeleton-card"><div class="skeleton-img"></div><div class="news-card-body"><div class="skeleton-text"></div><div class="skeleton-text short"></div></div></article>
+                <article class="news-card skeleton-card"><div class="skeleton-img"></div><div class="news-card-body"><div class="skeleton-text"></div><div class="skeleton-text short"></div></div></article>
+                <article class="news-card skeleton-card"><div class="skeleton-img"></div><div class="news-card-body"><div class="skeleton-text"></div><div class="skeleton-text short"></div></div></article>
+            </div>
+        </section>
+
+        <!-- Load More -->
+        <div class="load-more-container" id="loadMoreContainer" style="display:none;">
+            <button class="load-more-btn" onclick="loadMoreNews()">
+                <span>Load More Stories</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+        </div>
+
+        <!-- Article Reader Overlay -->
+        <div class="article-reader-overlay" id="articleReaderOverlay" onclick="closeArticleReader(event)">
+            <div class="article-reader" id="articleReader">
+                <button class="reader-close" onclick="closeArticleReader()">&times;</button>
+                <div class="reader-content" id="readerContent"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <span class="logo-text">Neural<span class="logo-highlight">Pulse</span></span>
+                    <span class="logo-badge">AI</span>
+                </div>
+                <p class="footer-tagline">AI-powered news intelligence for the modern reader. Real-time aggregation from trusted global sources.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="GitHub">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links-grid">
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <a href="#" onclick="switchCategory('general');return false;">Top Stories</a>
+                    <a href="#" onclick="switchCategory('world');return false;">World</a>
+                    <a href="#" onclick="switchCategory('business');return false;">Business</a>
+                    <a href="#" onclick="switchCategory('technology');return false;">Technology</a>
+                </div>
+                <div class="footer-col">
+                    <h4>More</h4>
+                    <a href="#" onclick="switchCategory('science');return false;">Science</a>
+                    <a href="#" onclick="switchCategory('health');return false;">Health</a>
+                    <a href="#" onclick="switchCategory('sports');return false;">Sports</a>
+                    <a href="#" onclick="switchCategory('entertainment');return false;">Entertainment</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="#">About NeuralPulse</a>
+                    <a href="#">AI Technology</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 NeuralPulse AI. All rights reserved. Powered by artificial intelligence.</p>
+            <p class="footer-disclaimer">News sourced from Google News and trusted global publishers. NeuralPulse AI aggregates and curates content using machine learning.</p>
         </div>
     </footer>
 
-    <!-- AI Chatbot Widget -->
-    <div class="chatbot-container">
-        <div class="chatbot-window" id="chatbotWindow">
-            <div class="chatbot-header">
-                <div class="chatbot-avatar">🤖</div>
-                <div class="chatbot-header-info">
-                    <h3>Mehrotra AI Assistant</h3>
-                    <p>Online • Here to help!</p>
-                </div>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-message">
-                    <div class="message-avatar">🤖</div>
-                    <div class="message-bubble">
-                        Hello! Welcome to Mehrotra Retail! 👋<br><br>
-                        I'm your AI shopping assistant. I can help you with:
-                        <div class="quick-replies">
-                            <button class="quick-reply-btn" onclick="sendQuickReply('Tell me about sarees')">Sarees</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('Show me suiting options')">Suiting</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('What about shirting?')">Shirting</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('Store location')">Location</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="chatbot-input-area">
-                <input
-                    type="text"
-                    class="chatbot-input"
-                    id="chatbotInput"
-                    placeholder="Type your message..."
-                    onkeypress="if(event.key === 'Enter') sendMessage()"
-                >
-                <button class="chatbot-send-btn" onclick="sendMessage()">➤</button>
-            </div>
-        </div>
-        <button class="chatbot-button" id="chatbotButton" onclick="toggleChatbot()">
-            <div class="chatbot-pulse"></div>
-            <span>💬</span>
-        </button>
-    </div>
+    <!-- Scroll to Top -->
+    <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
 
-    <script>
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toastContainer"></div>
 
-        // Add click animation to product cards
-        document.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('click', function() {
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = '';
-                }, 200);
-            });
-        });
-
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.product-card').forEach(card => {
-            observer.observe(card);
-        });
-
-        // AI Chatbot Functionality
-        function toggleChatbot() {
-            const window = document.getElementById('chatbotWindow');
-            const button = document.getElementById('chatbotButton');
-
-            window.classList.toggle('active');
-            button.classList.toggle('active');
-
-            if (window.classList.contains('active')) {
-                document.getElementById('chatbotInput').focus();
-            }
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('chatbotInput');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            addMessage(message, 'user');
-            input.value = '';
-
-            // Show typing indicator
-            showTypingIndicator();
-
-            // Generate AI response after a delay
-            setTimeout(() => {
-                const response = generateAIResponse(message);
-                hideTypingIndicator();
-                addMessage(response, 'bot');
-            }, 1000 + Math.random() * 1000);
-        }
-
-        function sendQuickReply(message) {
-            document.getElementById('chatbotInput').value = message;
-            sendMessage();
-        }
-
-        function addMessage(text, sender) {
-            const messagesContainer = document.getElementById('chatbotMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chatbot-message ${sender}`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `message-avatar ${sender === 'user' ? 'user-avatar' : ''}`;
-            avatar.textContent = sender === 'user' ? '👤' : '🤖';
-
-            const bubble = document.createElement('div');
-            bubble.className = 'message-bubble';
-            bubble.innerHTML = text;
-
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(bubble);
-            messagesContainer.appendChild(messageDiv);
-
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function showTypingIndicator() {
-            const messagesContainer = document.getElementById('chatbotMessages');
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'chatbot-message';
-            typingDiv.id = 'typingIndicator';
-
-            typingDiv.innerHTML = `
-                <div class="message-avatar">🤖</div>
-                <div class="message-bubble typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            `;
-
-            messagesContainer.appendChild(typingDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            const indicator = document.getElementById('typingIndicator');
-            if (indicator) {
-                indicator.remove();
-            }
-        }
-
-        function generateAIResponse(userMessage) {
-            const message = userMessage.toLowerCase();
-
-            // Greetings
-            if (message.match(/\b(hi|hello|hey|namaste)\b/)) {
-                return "Hello! 👋 Welcome to Mehrotra Retail! How can I assist you today? I can help you find the perfect sarees, suiting, shirting, or any other fabrics you're looking for.";
-            }
-
-            // Sarees
-            if (message.match(/\b(saree|sari|sarees|silk|banarasi|cotton saree)\b/)) {
-                return "We have an exquisite collection of sarees! 👗<br><br>✨ <b>Silk Sarees</b> - Luxurious and perfect for weddings<br>💎 <b>Banarasi Sarees</b> - Traditional with gold brocade<br>🌸 <b>Cotton Sarees</b> - Comfortable for daily wear<br>⭐ <b>Designer Sarees</b> - Contemporary elegance<br><br>Would you like to know more about any specific type?";
-            }
-
-            // Suiting
-            if (message.match(/\b(suit|suiting|formal|wedding suit|groom)\b/)) {
-                return "Our premium suiting collection is perfect for you! 🤵<br><br>👔 <b>Formal Suiting</b> - High-quality for professionals<br>🎩 <b>Wedding Suiting</b> - Special fabrics for your big day<br>✨ <b>Designer Suiting</b> - Exclusive patterns<br><br>All fabrics are wrinkle-resistant and durable. Need help choosing?";
-            }
-
-            // Shirting
-            if (message.match(/\b(shirt|shirting|cotton shirt|formal shirt|casual shirt)\b/)) {
-                return "We have finest shirting fabrics available! 👕<br><br>💼 <b>Formal Shirts</b> - Crisp cotton for office wear<br>🎨 <b>Casual Shirting</b> - Trendy patterns and prints<br>🌟 <b>Premium Cotton</b> - 100% pure cotton<br><br>Easy to iron and maintain. What's your preference?";
-            }
-
-            // Pricing
-            if (message.match(/\b(price|cost|expensive|cheap|budget|affordable)\b/)) {
-                return "We offer competitive pricing across all our collections! 💰<br><br>Our prices vary based on fabric type and quality:<br>• Cotton sarees start from affordable ranges<br>• Silk and Banarasi sarees are premium<br>• Suiting and shirting at competitive rates<br><br>We also have regular offers and discounts! Visit our store for the best deals or ask about specific products.";
-            }
-
-            // Quality
-            if (message.match(/\b(quality|genuine|authentic|original|real)\b/)) {
-                return "Quality is our top priority! ✅<br><br>• 100% genuine fabrics<br>• Sourced directly from trusted manufacturers<br>• Quality-checked before sale<br>• Authentic materials guaranteed<br><br>We've been serving customers for decades with authentic products. Your trust is our treasure!";
-            }
-
-            // Location/Contact
-            if (message.match(/\b(location|address|where|visit|store|shop|contact|phone|call)\b/)) {
-                return "📍 <b>Visit Our Store:</b><br>We'd love to welcome you to Mehrotra Retail!<br><br>📞 <b>Contact Us:</b><br>Feel free to call us for bulk orders or special requests<br><br>🕒 <b>Business Hours:</b><br>We're here to serve you!<br><br>Visit us for a personalized shopping experience with expert guidance.";
-            }
-
-            // Fabrics/Materials
-            if (message.match(/\b(fabric|material|cloth|textile|kurta|dress material)\b/)) {
-                return "We have a wide variety of premium fabrics! 🧵<br><br>🎀 Kurta Fabrics - Traditional & modern<br>💃 Dress Materials - Complete sets with dupattas<br>🌈 Fancy Fabrics - Designer embellishments<br>🏵️ Blouse Materials - Perfect matches<br><br>What type of fabric are you looking for?";
-            }
-
-            // Wedding/Occasion
-            if (message.match(/\b(wedding|marriage|occasion|festival|party|celebration)\b/)) {
-                return "Perfect timing! We specialize in fabrics for special occasions! 🎉<br><br>For weddings, we recommend:<br>👰 Banarasi & Designer sarees<br>🤵 Premium wedding suiting<br>✨ Rich silk fabrics<br>💎 Embellished materials<br><br>Our experts can help you choose the perfect fabric for your special day!";
-            }
-
-            // Colors
-            if (message.match(/\b(color|colour|red|blue|green|yellow|pink|black|white|golden)\b/)) {
-                return "We have fabrics in a rainbow of colors! 🌈<br><br>From vibrant reds and elegant golds to soothing pastels and classic blacks - we have it all!<br><br>Visit our store to see our complete color collection. Our team can help you find the perfect shade for your needs!";
-            }
-
-            // Thank you
-            if (message.match(/\b(thank|thanks|appreciated|great|awesome|good)\b/)) {
-                return "You're most welcome! 😊 It's our pleasure to help you. If you have any more questions about our fabrics or need assistance choosing the perfect material, feel free to ask. We're here to make your shopping experience wonderful! 🛍️";
-            }
-
-            // Goodbye
-            if (message.match(/\b(bye|goodbye|see you|later)\b/)) {
-                return "Thank you for chatting with us! 👋 We look forward to seeing you at Mehrotra Retail. Have a wonderful day! Feel free to return anytime you need assistance. Happy shopping! 🛍️";
-            }
-
-            // Help
-            if (message.match(/\b(help|assist|support|guide)\b/)) {
-                return "I'm here to help! 🤝<br><br>I can assist you with:<br>✅ Product information (sarees, suiting, shirting)<br>✅ Pricing and offers<br>✅ Quality and authenticity<br>✅ Store location and contact<br>✅ Fabric recommendations<br><br>What would you like to know?";
-            }
-
-            // Default response
-            const defaultResponses = [
-                "That's a great question! For detailed information about our products and pricing, I recommend visiting our store where our experts can provide personalized assistance. Is there anything specific about our sarees, suiting, or shirting you'd like to know?",
-                "I'd be happy to help! 😊 Could you please tell me more about what you're looking for? Are you interested in sarees, suiting, shirting, or other fabrics?",
-                "Thank you for your interest! For the best experience and detailed answers, our store team would be delighted to assist you. Meanwhile, feel free to ask about our product categories, quality, or pricing!",
-                "I'm here to help! Let me know if you'd like information about our sarees, suiting fabrics, shirting materials, or any other products from Mehrotra Retail. 🛍️"
-            ];
-
-            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-        }
-
-        // Auto-open chatbot after 3 seconds (optional)
-        setTimeout(() => {
-            if (!document.getElementById('chatbotWindow').classList.contains('active')) {
-                // Uncomment below to auto-open chatbot
-                // toggleChatbot();
-            }
-        }, 3000);
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
