@@ -456,9 +456,7 @@ function renderFeatured(articles) {
     section.innerHTML = `
         <div class="featured-grid">
             <article class="featured-card main-featured slide-up" onclick="openReader(0)">
-                <div class="featured-img blur-img-wrap" style="background-image: url('${escapeHTML(main.thumbnail)}')">
-                    <div class="blur-placeholder"></div>
-                </div>
+                <div class="featured-img" style="background-image: url('${escapeHTML(main.thumbnail)}')"></div>
                 <div class="featured-overlay"></div>
                 <div class="featured-body">
                     <div class="featured-source"><span class="source-dot"></span>${escapeHTML(main.source)}</div>
@@ -478,9 +476,7 @@ function renderFeatured(articles) {
                 ${[side1, side2].map((article, idx) => `
                     <article class="featured-card side-featured slide-up" onclick="openReader(${idx + 1})">
                         <div class="featured-img-wrap">
-                            <div class="featured-img blur-img-wrap" style="background-image: url('${escapeHTML(article.thumbnail)}')">
-                                <div class="blur-placeholder"></div>
-                            </div>
+                            <div class="featured-img" style="background-image: url('${escapeHTML(article.thumbnail)}')"></div>
                         </div>
                         <div class="featured-body">
                             <div class="featured-source"><span class="source-dot"></span>${escapeHTML(article.source)}</div>
@@ -563,11 +559,9 @@ function createNewsCard(article, articleIndex, animIndex) {
     return `
         <article class="news-card slide-up" onclick="openReader(${articleIndex})" style="animation-delay:${animIndex * 0.05}s">
             <div class="news-card-img">
-                <div class="blur-img-card" style="background-color:${colors.primary}">
-                    <img src="${escapeHTML(article.thumbnail)}" alt="${escapeHTML(article.title)}" loading="lazy"
-                         onerror="handleImgError(this, ${articleIndex})"
-                         onload="this.classList.add('img-loaded')">
-                </div>
+                <img src="${escapeHTML(article.thumbnail)}" alt="${escapeHTML(article.title)}" loading="lazy"
+                     onerror="handleImgError(this, ${articleIndex})"
+                     onload="this.classList.add('img-loaded')">
                 <span class="card-category" style="background:linear-gradient(135deg, ${colors.primary}, ${colors.secondary})">${cat.label}</span>
                 <button class="card-bookmark-btn" onclick="event.stopPropagation();toggleBookmark(${articleIndex})" title="Save article">
                     ${getBookmarkIcon(article.id)}
