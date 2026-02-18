@@ -1045,6 +1045,7 @@ const videoState = {
     audioElement: null,
     audioCache: {},        // cache generated audio blobs by story index
     isGeneratingAudio: false,
+    audioActive: false,    // true when audio is playing (prevents timer from auto-advancing)
 
     // ElevenLabs config
     ELEVENLABS_API_KEY: 'c0b53282d415c650829aa98577ac293c0cb266fdba13167c7a101ac4c21fc3fe',
@@ -1243,6 +1244,10 @@ async function speakStory(index) {
     const text = buildNarrationText(article, index);
     const indicator = document.getElementById('videoSpeakingIndicator');
 
+    // While loading audio, pause the auto-advance timer so it doesn't cut off
+    videoState.audioActive = true;
+    videoState.storyDuration = 999999; // prevent timer from advancing until audio is ready
+
     // Try ElevenLabs first
     if (videoState.useElevenLabs) {
         try {
@@ -1257,6 +1262,9 @@ async function speakStory(index) {
                 videoState.isGeneratingAudio = false;
             }
 
+            // Check if story changed while we were fetching
+            if (videoState.currentIndex !== index) return;
+
             const audio = getAudioElement();
             audio.src = audioUrl;
 
@@ -1266,24 +1274,37 @@ async function speakStory(index) {
 
             audio.onended = () => {
                 if (indicator) indicator.style.display = 'none';
-                if (videoState.isPlaying) {
-                    const remaining = videoState.storyDuration - videoState.elapsed;
-                    if (remaining <= 1500) {
-                        clearInterval(videoState.progressTimer);
-                        videoState.timer = setTimeout(() => videoPlayerNext(), 1500);
-                    }
+                videoState.audioActive = false;
+                // Audio finished — advance to next story after a short pause
+                if (videoState.isPlaying && videoState.currentIndex === index) {
+                    clearInterval(videoState.progressTimer);
+                    clearTimeout(videoState.timer);
+                    videoState.timer = setTimeout(() => videoPlayerNext(), 1500);
                 }
             };
 
             audio.onloadedmetadata = () => {
-                // Set story duration based on actual audio length
+                // Now set the real story duration based on actual audio length
                 const audioDurationMs = audio.duration * 1000;
-                videoState.storyDuration = Math.max(audioDurationMs + 2000, 8000);
+                videoState.storyDuration = audioDurationMs + 2000;
+                // Reset elapsed to sync progress bar with audio
+                videoState.elapsed = Math.round(audio.currentTime * 1000);
+            };
+
+            // Sync progress bar with actual audio position during playback
+            audio.ontimeupdate = () => {
+                if (audio.duration) {
+                    videoState.elapsed = Math.round(audio.currentTime * 1000);
+                    videoState.storyDuration = Math.round(audio.duration * 1000) + 2000;
+                    updateVideoProgress();
+                    updateVideoTime();
+                }
             };
 
             audio.onerror = () => {
                 console.warn('[NeuralPulse] Audio playback failed, falling back to browser TTS');
                 if (indicator) indicator.style.display = 'none';
+                videoState.audioActive = false;
                 speakStoryBrowserTTS(index, text);
             };
 
@@ -1296,7 +1317,7 @@ async function speakStory(index) {
         } catch (err) {
             console.warn('[NeuralPulse] ElevenLabs failed:', err.message, '- falling back to browser TTS');
             videoState.isGeneratingAudio = false;
-            // Don't disable ElevenLabs permanently, just fall through to browser TTS this time
+            videoState.audioActive = false;
         }
     }
 
@@ -1306,9 +1327,14 @@ async function speakStory(index) {
 
 // Browser TTS fallback
 function speakStoryBrowserTTS(index, text) {
-    if (!videoState.speechSynth) return;
+    if (!videoState.speechSynth) {
+        videoState.audioActive = false;
+        videoState.storyDuration = 8000;
+        return;
+    }
 
     videoState.speechSynth.cancel();
+    videoState.audioActive = true;
 
     const utterance = new SpeechSynthesisUtterance(text);
     if (videoState.preferredVoice) utterance.voice = videoState.preferredVoice;
@@ -1329,12 +1355,12 @@ function speakStoryBrowserTTS(index, text) {
     utterance.onend = () => {
         if (indicator) indicator.style.display = 'none';
         videoState.currentUtterance = null;
-        if (videoState.isPlaying) {
-            const remaining = videoState.storyDuration - videoState.elapsed;
-            if (remaining <= 1500) {
-                clearInterval(videoState.progressTimer);
-                videoState.timer = setTimeout(() => videoPlayerNext(), 1500);
-            }
+        videoState.audioActive = false;
+        // Audio finished — advance to next story
+        if (videoState.isPlaying && videoState.currentIndex === index) {
+            clearInterval(videoState.progressTimer);
+            clearTimeout(videoState.timer);
+            videoState.timer = setTimeout(() => videoPlayerNext(), 1500);
         }
     };
 
@@ -1350,12 +1376,15 @@ function stopAudio() {
         audio.currentTime = 0;
         audio.onended = null;
         audio.onplay = null;
+        audio.ontimeupdate = null;
+        audio.onloadedmetadata = null;
     }
     // Stop browser TTS
     if (videoState.speechSynth) {
         videoState.speechSynth.cancel();
     }
     videoState.currentUtterance = null;
+    videoState.audioActive = false;
     const indicator = document.getElementById('videoSpeakingIndicator');
     if (indicator) indicator.style.display = 'none';
 }
@@ -1432,12 +1461,17 @@ function videoPlayerPlay() {
     }
 
     // Progress tick every 100ms
+    // When audio is active, the ontimeupdate/onended handlers drive progress and advancement.
+    // The timer only auto-advances when muted or no audio is playing.
     videoState.progressTimer = setInterval(() => {
-        videoState.elapsed += 100;
+        if (!videoState.audioActive) {
+            videoState.elapsed += 100;
+        }
         updateVideoProgress();
         updateVideoTime();
 
-        if (videoState.elapsed >= videoState.storyDuration) {
+        // Only auto-advance via timer when no audio is active (muted mode)
+        if (!videoState.audioActive && videoState.elapsed >= videoState.storyDuration) {
             videoPlayerNext();
         }
     }, 100);
