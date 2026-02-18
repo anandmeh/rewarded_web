@@ -263,6 +263,7 @@ async function fetchNews(category) {
             renderNewsGrid(articles.slice(3));
             updateTicker(articles);
             extractTrendingTopics(articles);
+            initVideoPlayer(articles);
         });
 
         showToast('\u2705 ' + cat.label + ' news updated');
@@ -276,6 +277,7 @@ async function fetchNews(category) {
         renderNewsGrid(fallback.slice(3));
         updateTicker(fallback);
         extractTrendingTopics(fallback);
+        initVideoPlayer(fallback);
     }
 
     state.isLoading = false;
@@ -1035,6 +1037,542 @@ const FALLBACK_DATA = {
         { title: 'Music Streaming Hits 700 Million Paid Subscribers Globally', source: 'Billboard', desc: 'The global music streaming industry continues its explosive growth, with paid subscriptions reaching a new all-time high across all platforms.' }
     ]
 };
+
+// ---- Video News Broadcast Player with ElevenLabs TTS ----
+const videoState = {
+    articles: [],
+    currentIndex: 0,
+    isPlaying: true,
+    timer: null,
+    progressTimer: null,
+    elapsed: 0,
+    storyDuration: 8000,
+    isMuted: false,
+    audioElement: null,
+    audioCache: {},        // cache generated audio blobs by story index
+    isGeneratingAudio: false,
+
+    // ElevenLabs config
+    ELEVENLABS_API_KEY: 'c0b53282d415c650829aa98577ac293c0cb266fdba13167c7a101ac4c21fc3fe',
+    ELEVENLABS_VOICE_ID: '21m00Tcm4TlvDq8ikWAM', // Rachel - professional female
+    ELEVENLABS_MODEL: 'eleven_multilingual_v2',
+
+    // Browser TTS fallback
+    speechSynth: window.speechSynthesis || null,
+    currentUtterance: null,
+    preferredVoice: null,
+    voicesLoaded: false,
+    useElevenLabs: true    // try ElevenLabs first, fallback to browser TTS
+};
+
+// Create a reusable audio element
+function getAudioElement() {
+    if (!videoState.audioElement) {
+        videoState.audioElement = new Audio();
+        videoState.audioElement.preload = 'auto';
+    }
+    return videoState.audioElement;
+}
+
+// Load browser TTS voices as fallback
+function loadVoices() {
+    if (!videoState.speechSynth) return;
+    const voices = videoState.speechSynth.getVoices();
+    if (voices.length > 0) pickBestVoice(voices);
+    videoState.speechSynth.onvoiceschanged = () => {
+        pickBestVoice(videoState.speechSynth.getVoices());
+    };
+}
+
+function pickBestVoice(voices) {
+    if (videoState.voicesLoaded) return;
+    const preferred = ['Samantha','Karen','Moira','Tessa','Google UK English Female','Microsoft Zira','Microsoft Jenny'];
+    for (const name of preferred) {
+        const v = voices.find(voice => voice.name.includes(name) && voice.lang.startsWith('en'));
+        if (v) { videoState.preferredVoice = v; break; }
+    }
+    if (!videoState.preferredVoice) {
+        videoState.preferredVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+    }
+    videoState.voicesLoaded = true;
+}
+
+function initVideoPlayer(articles) {
+    const section = document.getElementById('videoSection');
+    if (!section) return;
+
+    // Stop any existing playback and clear audio cache for new content
+    stopVideoPlayback();
+    videoState.audioCache = {};
+
+    // Load browser TTS voices as fallback
+    loadVoices();
+
+    // Pick top 8 articles with images first
+    const videoArticles = articles
+        .filter(a => a.thumbnail && !a.thumbnail.startsWith('data:'))
+        .slice(0, 8);
+
+    // Fill remaining from all articles
+    if (videoArticles.length < 8) {
+        const remaining = articles
+            .filter(a => !videoArticles.includes(a))
+            .slice(0, 8 - videoArticles.length);
+        videoArticles.push(...remaining);
+    }
+
+    if (videoArticles.length < 2) return;
+
+    videoState.articles = videoArticles.slice(0, 8);
+    videoState.currentIndex = 0;
+    videoState.elapsed = 0;
+
+    section.style.display = 'block';
+
+    renderVideoThumbnails();
+    renderProgressMarkers();
+    showVideoStory(0);
+    videoPlayerPlay();
+}
+
+function stopVideoPlayback() {
+    clearInterval(videoState.progressTimer);
+    clearTimeout(videoState.timer);
+    stopAudio();
+}
+
+function renderVideoThumbnails() {
+    const container = document.getElementById('videoThumbnails');
+    if (!container) return;
+
+    container.innerHTML = videoState.articles.map((article, i) => `
+        <div class="video-thumb ${i === 0 ? 'active' : ''}" onclick="videoPlayerGoTo(${i})" title="${escapeHTML(article.title)}">
+            <img src="${escapeHTML(article.thumbnail)}" alt="" onerror="this.src='${getFallbackImage(article.category || 'general', i)}'">
+            <span class="video-thumb-number">${i + 1}</span>
+            <span class="video-thumb-overlay">${escapeHTML(article.source)}</span>
+        </div>
+    `).join('');
+}
+
+function renderProgressMarkers() {
+    const container = document.getElementById('videoProgressMarkers');
+    if (!container) return;
+
+    container.innerHTML = videoState.articles.map((_, i) =>
+        `<div class="video-progress-marker" onclick="videoPlayerGoTo(${i})"></div>`
+    ).join('');
+}
+
+function buildNarrationText(article, index) {
+    const storyNum = index + 1;
+    const total = videoState.articles.length;
+
+    // Natural broadcast intros with varied phrasing
+    let intro;
+    if (storyNum === 1) {
+        intro = 'Good evening, and welcome to NeuralPulse News. Here are your top stories tonight. ... ';
+    } else if (storyNum === 2) {
+        intro = 'In other news, ... ';
+    } else if (storyNum === 3) {
+        intro = 'Turning now to our next story. ... ';
+    } else if (storyNum === total) {
+        intro = 'And finally, before we go. ... ';
+    } else if (storyNum % 2 === 0) {
+        intro = 'Meanwhile, ... ';
+    } else {
+        intro = 'We now bring you this developing story. ... ';
+    }
+
+    // Add natural pauses with commas and ellipses for TTS breathing room
+    const title = article.title.replace(/:/g, ', ... ');
+    return intro + title + '. ... ' + article.description;
+}
+
+// ElevenLabs TTS - fetch audio from API
+async function fetchElevenLabsAudio(text) {
+    const response = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${videoState.ELEVENLABS_VOICE_ID}`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'xi-api-key': videoState.ELEVENLABS_API_KEY
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: videoState.ELEVENLABS_MODEL,
+                voice_settings: {
+                    stability: 0.6,
+                    similarity_boost: 0.85,
+                    style: 0.4,
+                    use_speaker_boost: true
+                }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error('ElevenLabs API error: ' + response.status);
+    }
+
+    const audioBlob = await response.blob();
+    return URL.createObjectURL(audioBlob);
+}
+
+// Pre-generate audio for upcoming stories
+async function preloadNextAudio(currentIndex) {
+    const nextIndex = (currentIndex + 1) % videoState.articles.length;
+    if (videoState.audioCache[nextIndex]) return; // already cached
+
+    const article = videoState.articles[nextIndex];
+    if (!article) return;
+
+    try {
+        const text = buildNarrationText(article, nextIndex);
+        const audioUrl = await fetchElevenLabsAudio(text);
+        videoState.audioCache[nextIndex] = audioUrl;
+        console.log('[NeuralPulse] Pre-cached audio for story', nextIndex + 1);
+    } catch (err) {
+        // Silent fail for preload
+    }
+}
+
+async function speakStory(index) {
+    if (videoState.isMuted) return;
+
+    // Stop any current audio
+    stopAudio();
+
+    const article = videoState.articles[index];
+    if (!article) return;
+
+    const text = buildNarrationText(article, index);
+    const indicator = document.getElementById('videoSpeakingIndicator');
+
+    // Try ElevenLabs first
+    if (videoState.useElevenLabs) {
+        try {
+            let audioUrl = videoState.audioCache[index];
+
+            if (!audioUrl) {
+                videoState.isGeneratingAudio = true;
+                if (indicator) indicator.style.display = 'flex';
+                console.log('[NeuralPulse] Generating ElevenLabs audio for story', index + 1);
+                audioUrl = await fetchElevenLabsAudio(text);
+                videoState.audioCache[index] = audioUrl;
+                videoState.isGeneratingAudio = false;
+            }
+
+            const audio = getAudioElement();
+            audio.src = audioUrl;
+
+            audio.onplay = () => {
+                if (indicator) indicator.style.display = 'flex';
+            };
+
+            audio.onended = () => {
+                if (indicator) indicator.style.display = 'none';
+                if (videoState.isPlaying) {
+                    const remaining = videoState.storyDuration - videoState.elapsed;
+                    if (remaining <= 1500) {
+                        clearInterval(videoState.progressTimer);
+                        videoState.timer = setTimeout(() => videoPlayerNext(), 1500);
+                    }
+                }
+            };
+
+            audio.onloadedmetadata = () => {
+                // Set story duration based on actual audio length
+                const audioDurationMs = audio.duration * 1000;
+                videoState.storyDuration = Math.max(audioDurationMs + 2000, 8000);
+            };
+
+            audio.onerror = () => {
+                console.warn('[NeuralPulse] Audio playback failed, falling back to browser TTS');
+                if (indicator) indicator.style.display = 'none';
+                speakStoryBrowserTTS(index, text);
+            };
+
+            await audio.play();
+
+            // Pre-cache next story audio in background
+            preloadNextAudio(index);
+
+            return; // success
+        } catch (err) {
+            console.warn('[NeuralPulse] ElevenLabs failed:', err.message, '- falling back to browser TTS');
+            videoState.isGeneratingAudio = false;
+            // Don't disable ElevenLabs permanently, just fall through to browser TTS this time
+        }
+    }
+
+    // Fallback: browser TTS
+    speakStoryBrowserTTS(index, text);
+}
+
+// Browser TTS fallback
+function speakStoryBrowserTTS(index, text) {
+    if (!videoState.speechSynth) return;
+
+    videoState.speechSynth.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (videoState.preferredVoice) utterance.voice = videoState.preferredVoice;
+    utterance.rate = 0.92;
+    utterance.pitch = 1.05;
+    utterance.volume = 1.0;
+
+    const wordCount = text.split(/\s+/).length;
+    const estimatedMs = (wordCount / 142) * 60 * 1000;
+    videoState.storyDuration = Math.max(estimatedMs + 2000, 8000);
+
+    const indicator = document.getElementById('videoSpeakingIndicator');
+
+    utterance.onstart = () => {
+        if (indicator) indicator.style.display = 'flex';
+    };
+
+    utterance.onend = () => {
+        if (indicator) indicator.style.display = 'none';
+        videoState.currentUtterance = null;
+        if (videoState.isPlaying) {
+            const remaining = videoState.storyDuration - videoState.elapsed;
+            if (remaining <= 1500) {
+                clearInterval(videoState.progressTimer);
+                videoState.timer = setTimeout(() => videoPlayerNext(), 1500);
+            }
+        }
+    };
+
+    videoState.currentUtterance = utterance;
+    videoState.speechSynth.speak(utterance);
+}
+
+function stopAudio() {
+    // Stop ElevenLabs audio
+    const audio = videoState.audioElement;
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.onended = null;
+        audio.onplay = null;
+    }
+    // Stop browser TTS
+    if (videoState.speechSynth) {
+        videoState.speechSynth.cancel();
+    }
+    videoState.currentUtterance = null;
+    const indicator = document.getElementById('videoSpeakingIndicator');
+    if (indicator) indicator.style.display = 'none';
+}
+
+function showVideoStory(index) {
+    const article = videoState.articles[index];
+    if (!article) return;
+
+    const bgImg = document.getElementById('videoBgImg');
+    const headline = document.getElementById('videoHeadline');
+    const summary = document.getElementById('videoSummary');
+    const source = document.getElementById('videoSource');
+    const counter = document.getElementById('videoStoryCounter');
+
+    // Fade out then update
+    const content = document.getElementById('videoContent');
+    content.style.opacity = '0';
+    content.style.transform = 'translateY(12px)';
+
+    setTimeout(() => {
+        bgImg.src = article.thumbnail;
+        bgImg.onerror = function() {
+            this.onerror = null;
+            this.src = getFallbackImage(article.category || 'general', index);
+        };
+        headline.textContent = article.title;
+        summary.textContent = article.description;
+        source.textContent = article.source;
+        counter.textContent = (index + 1) + ' / ' + videoState.articles.length;
+
+        content.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        content.style.opacity = '1';
+        content.style.transform = 'translateY(0)';
+    }, 200);
+
+    // Update thumbnails
+    document.querySelectorAll('.video-thumb').forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === index);
+    });
+
+    const activeTh = document.querySelector('.video-thumb.active');
+    if (activeTh) activeTh.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+    videoState.currentIndex = index;
+    videoState.elapsed = 0;
+    // Reset story duration for muted mode
+    if (videoState.isMuted) {
+        videoState.storyDuration = 6000;
+    }
+    updateVideoProgress();
+    updateVideoTime();
+
+    // Start narration
+    if (videoState.isPlaying) {
+        speakStory(index);
+    }
+}
+
+function videoPlayerPlay() {
+    videoState.isPlaying = true;
+    updatePlayPauseIcon();
+
+    clearInterval(videoState.progressTimer);
+    clearTimeout(videoState.timer);
+
+    // Resume audio if paused
+    const audio = videoState.audioElement;
+    if (audio && audio.paused && audio.src && audio.currentTime > 0) {
+        audio.play().catch(() => {});
+    } else if (videoState.speechSynth && videoState.speechSynth.paused) {
+        videoState.speechSynth.resume();
+    } else if (!videoState.currentUtterance && !(audio && !audio.paused && audio.currentTime > 0)) {
+        speakStory(videoState.currentIndex);
+    }
+
+    // Progress tick every 100ms
+    videoState.progressTimer = setInterval(() => {
+        videoState.elapsed += 100;
+        updateVideoProgress();
+        updateVideoTime();
+
+        if (videoState.elapsed >= videoState.storyDuration) {
+            videoPlayerNext();
+        }
+    }, 100);
+}
+
+function videoPlayerPause() {
+    videoState.isPlaying = false;
+    updatePlayPauseIcon();
+    clearInterval(videoState.progressTimer);
+    clearTimeout(videoState.timer);
+
+    // Pause ElevenLabs audio
+    const audio = videoState.audioElement;
+    if (audio && !audio.paused) {
+        audio.pause();
+    }
+    // Pause browser TTS
+    if (videoState.speechSynth && videoState.speechSynth.speaking) {
+        videoState.speechSynth.pause();
+    }
+}
+
+function videoPlayerToggle() {
+    if (videoState.isPlaying) {
+        videoPlayerPause();
+    } else {
+        videoPlayerPlay();
+    }
+}
+
+function videoPlayerNext() {
+    stopVideoPlayback();
+
+    const nextIndex = (videoState.currentIndex + 1) % videoState.articles.length;
+    showVideoStory(nextIndex);
+
+    if (videoState.isPlaying) {
+        videoPlayerPlay();
+    }
+}
+
+function videoPlayerPrev() {
+    stopVideoPlayback();
+
+    const prevIndex = (videoState.currentIndex - 1 + videoState.articles.length) % videoState.articles.length;
+    showVideoStory(prevIndex);
+
+    if (videoState.isPlaying) {
+        videoPlayerPlay();
+    }
+}
+
+function videoPlayerGoTo(index) {
+    stopVideoPlayback();
+    showVideoStory(index);
+
+    if (videoState.isPlaying) {
+        videoPlayerPlay();
+    }
+}
+
+function videoToggleMute() {
+    videoState.isMuted = !videoState.isMuted;
+    updateMuteIcon();
+
+    if (videoState.isMuted) {
+        stopAudio();
+        videoState.storyDuration = 6000;
+        showToast('Narration muted');
+    } else {
+        speakStory(videoState.currentIndex);
+        showToast('Narration enabled');
+    }
+}
+
+function updateMuteIcon() {
+    const volOn = document.querySelector('.video-icon-vol-on');
+    const volOff = document.querySelector('.video-icon-vol-off');
+    if (!volOn || !volOff) return;
+
+    if (videoState.isMuted) {
+        volOn.style.display = 'none';
+        volOff.style.display = 'block';
+    } else {
+        volOn.style.display = 'block';
+        volOff.style.display = 'none';
+    }
+}
+
+function updateVideoProgress() {
+    const fill = document.getElementById('videoProgressFill');
+    if (!fill) return;
+
+    const totalStories = videoState.articles.length;
+    const storyProgress = Math.min(videoState.elapsed / videoState.storyDuration, 1);
+    const overallProgress = ((videoState.currentIndex + storyProgress) / totalStories) * 100;
+    fill.style.width = overallProgress + '%';
+}
+
+function updateVideoTime() {
+    const timeEl = document.getElementById('videoTime');
+    if (!timeEl) return;
+
+    const totalDuration = videoState.articles.length * videoState.storyDuration;
+    const currentTime = (videoState.currentIndex * videoState.storyDuration) + videoState.elapsed;
+
+    const formatTime = (ms) => {
+        const secs = Math.floor(ms / 1000);
+        const mins = Math.floor(secs / 60);
+        const remainSecs = secs % 60;
+        return mins + ':' + String(remainSecs).padStart(2, '0');
+    };
+
+    timeEl.textContent = formatTime(currentTime) + ' / ' + formatTime(totalDuration);
+}
+
+function updatePlayPauseIcon() {
+    const pauseIcon = document.querySelector('.video-icon-pause');
+    const playIcon = document.querySelector('.video-icon-play');
+    if (!pauseIcon || !playIcon) return;
+
+    if (videoState.isPlaying) {
+        pauseIcon.style.display = 'block';
+        playIcon.style.display = 'none';
+    } else {
+        pauseIcon.style.display = 'none';
+        playIcon.style.display = 'block';
+    }
+}
 
 function getFallbackArticles() {
     const now = new Date();
