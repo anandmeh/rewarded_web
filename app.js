@@ -101,6 +101,7 @@ function toggleTheme() {
 function initScrollEffects() {
     const header = document.getElementById('header');
     const scrollTop = document.getElementById('scrollTop');
+    const pageProgress = document.getElementById('pageProgressBar');
     window.addEventListener('scroll', () => {
         const st = window.scrollY;
         if (st > 50) header.classList.add('scrolled');
@@ -108,6 +109,13 @@ function initScrollEffects() {
 
         if (st > 500) scrollTop.classList.add('visible');
         else scrollTop.classList.remove('visible');
+
+        // Page progress bar
+        if (pageProgress) {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = scrollHeight > 0 ? (st / scrollHeight) * 100 : 0;
+            pageProgress.style.width = progress + '%';
+        }
     });
 }
 
@@ -206,7 +214,7 @@ function switchCategory(category) {
 }
 
 function updateActiveNav(category) {
-    document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(el => {
+    document.querySelectorAll('.nav-link, .mobile-nav-link, .bottom-nav-item[data-category]').forEach(el => {
         el.classList.toggle('active', el.dataset.category === category);
     });
 }
@@ -567,6 +575,10 @@ function createNewsCard(article, articleIndex, animIndex) {
             </div>
             <div class="news-card-body">
                 <div class="news-card-source">${escapeHTML(article.source)}</div>
+                <span class="news-card-reading-time">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    ${Math.max(2, Math.ceil((article.description || '').split(/\s+/).length / 40 + 1))} min read
+                </span>
                 <h3 class="news-card-title">${escapeHTML(article.title)}</h3>
                 <p class="news-card-excerpt">${escapeHTML(article.description)}</p>
                 <div class="news-card-footer">

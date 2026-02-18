@@ -13,6 +13,9 @@
 </head>
 <body>
 
+    <!-- Page Scroll Progress -->
+    <div class="page-progress-bar" id="pageProgressBar"></div>
+
     <!-- Preloader -->
     <div class="preloader" id="preloader">
         <div class="preloader-inner">
@@ -267,6 +270,15 @@
                     <span class="logo-badge">AI</span>
                 </div>
                 <p class="footer-tagline">AI-powered news intelligence for the modern reader. Real-time aggregation from trusted global sources.</p>
+                <div class="footer-newsletter">
+                    <p class="footer-newsletter-label">Stay informed</p>
+                    <div class="footer-newsletter-form">
+                        <input type="email" class="footer-newsletter-input" placeholder="your@email.com">
+                        <button class="footer-newsletter-btn" onclick="showToast('Thanks for subscribing!')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="footer-social">
                     <a href="#" class="social-link" aria-label="Twitter">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -304,8 +316,8 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 NeuralPulse AI. All rights reserved. Powered by artificial intelligence.</p>
-            <p class="footer-disclaimer">News sourced from Google News and trusted global publishers. NeuralPulse AI aggregates and curates content using machine learning.</p>
+            <p>&copy; 2026 NeuralPulse AI. All rights reserved.</p>
+            <p class="footer-disclaimer">AI-powered aggregation from trusted global publishers.</p>
         </div>
     </footer>
 
@@ -316,6 +328,30 @@
 
     <!-- Notification Toast -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-item active" data-category="general" onclick="switchCategory('general')">
+            <span class="bottom-nav-icon">&#9889;</span>
+            <span class="bottom-nav-label">Top</span>
+        </button>
+        <button class="bottom-nav-item" data-category="world" onclick="switchCategory('world')">
+            <span class="bottom-nav-icon">&#127757;</span>
+            <span class="bottom-nav-label">World</span>
+        </button>
+        <button class="bottom-nav-item" data-category="technology" onclick="switchCategory('technology')">
+            <span class="bottom-nav-icon">&#128640;</span>
+            <span class="bottom-nav-label">Tech</span>
+        </button>
+        <button class="bottom-nav-item" data-category="business" onclick="switchCategory('business')">
+            <span class="bottom-nav-icon">&#128188;</span>
+            <span class="bottom-nav-label">Biz</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showSavedArticles()">
+            <span class="bottom-nav-icon">&#128278;</span>
+            <span class="bottom-nav-label">Saved</span>
+        </button>
+    </nav>
 
     <script src="app.js"></script>
 </body>
