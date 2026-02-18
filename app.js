@@ -283,6 +283,11 @@ async function fetchNews(category) {
     state.isLoading = false;
 }
 
+function isLocalhost() {
+    // NewsAPI free tier ONLY works with exactly "localhost" - not 127.0.0.1
+    return window.location.hostname === 'localhost';
+}
+
 async function fetchFromNewsAPI(category) {
     const cacheKey = 'newsapi_' + category + '_' + state.currentCountry;
     const cached = state.cache[cacheKey];
@@ -291,19 +296,43 @@ async function fetchFromNewsAPI(category) {
     }
 
     const cat = CONFIG.CATEGORIES[category];
-    let url;
+    let apiUrl;
 
     if (cat.query) {
-        url = CONFIG.NEWS_API_BASE + '/everything?q=' + encodeURIComponent(cat.query) +
+        apiUrl = CONFIG.NEWS_API_BASE + '/everything?q=' + encodeURIComponent(cat.query) +
             '&language=en&sortBy=publishedAt&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
     } else {
-        url = CONFIG.NEWS_API_BASE + '/top-headlines?country=' + state.currentCountry + '&category=' + cat.apiCategory +
+        apiUrl = CONFIG.NEWS_API_BASE + '/top-headlines?country=' + state.currentCountry + '&category=' + cat.apiCategory +
             '&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
     }
 
     console.log('[NeuralPulse] Fetching from NewsAPI:', cat.label, '(' + state.currentCountry + ')');
-    const res = await fetchWithTimeout(url, CONFIG.FETCH_TIMEOUT);
-    const data = await res.json();
+
+    // NewsAPI free tier only works on localhost. Use a CORS proxy for deployed sites.
+    let data;
+    if (isLocalhost()) {
+        const res = await fetchWithTimeout(apiUrl, CONFIG.FETCH_TIMEOUT);
+        data = await res.json();
+    } else {
+        // Try multiple proxy services for reliability
+        const proxies = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?'
+        ];
+        let fetched = false;
+        for (const proxy of proxies) {
+            try {
+                const res = await fetchWithTimeout(proxy + encodeURIComponent(apiUrl), CONFIG.FETCH_TIMEOUT);
+                data = await res.json();
+                fetched = true;
+                console.log('[NeuralPulse] Fetched via proxy:', proxy);
+                break;
+            } catch (proxyErr) {
+                console.warn('[NeuralPulse] Proxy failed:', proxy, proxyErr.message);
+            }
+        }
+        if (!fetched) return [];
+    }
 
     if (data.status === 'ok' && data.articles && data.articles.length > 0) {
         console.log('[NeuralPulse] NewsAPI returned', data.articles.length, 'articles');
