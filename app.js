@@ -7,7 +7,7 @@
 
 // ---- Configuration ----
 const CONFIG = {
-    GNEWS_API_KEY: '5714c4f9c4e51f1faf9bca3237c8e6b0',
+    GNEWS_API_KEY: 'ccd6b43884151725ba6df519db8c152a',
     GNEWS_API_BASE: 'https://gnews.io/api/v4',
     ITEMS_PER_PAGE: 9,
     FETCH_TIMEOUT: 10000,
