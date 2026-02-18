@@ -7,8 +7,8 @@
 
 // ---- Configuration ----
 const CONFIG = {
-    NEWS_API_KEY: '7e6bfa0ef827410dbeef9f0a728b7607',
-    NEWS_API_BASE: 'https://newsapi.org/v2',
+    GNEWS_API_KEY: '5714c4f9c4e51f1faf9bca3237c8e6b0',
+    GNEWS_API_BASE: 'https://gnews.io/api/v4',
     ITEMS_PER_PAGE: 9,
     FETCH_TIMEOUT: 10000,
     REFRESH_INTERVAL: 2 * 60 * 60 * 1000,
@@ -34,7 +34,7 @@ const CONFIG = {
     },
     CATEGORIES: {
         general:       { label: 'Top Stories',    icon: '\u26A1', apiCategory: 'general' },
-        world:         { label: 'World',          icon: '\uD83C\uDF0D', apiCategory: 'general', query: 'world OR international' },
+        world:         { label: 'World',          icon: '\uD83C\uDF0D', apiCategory: 'world' },
         business:      { label: 'Business',       icon: '\uD83D\uDCBC', apiCategory: 'business' },
         technology:    { label: 'Technology',      icon: '\uD83D\uDE80', apiCategory: 'technology' },
         science:       { label: 'Science',         icon: '\uD83D\uDD2C', apiCategory: 'science' },
@@ -152,14 +152,14 @@ async function searchNews(query) {
     showSkeletons();
 
     try {
-        const url = CONFIG.NEWS_API_BASE + '/everything?q=' + encodeURIComponent(q) +
-            '&language=en&sortBy=publishedAt&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
+        const url = CONFIG.GNEWS_API_BASE + '/search?q=' + encodeURIComponent(q) +
+            '&lang=en&country=' + state.currentCountry + '&max=10&apikey=' + CONFIG.GNEWS_API_KEY;
         const res = await fetchWithTimeout(url, CONFIG.FETCH_TIMEOUT);
         const data = await res.json();
 
         let articles = [];
-        if (data.status === 'ok' && data.articles && data.articles.length > 0) {
-            articles = parseNewsAPIArticles(data.articles, 'general');
+        if (data.articles && data.articles.length > 0) {
+            articles = parseGNewsArticles(data.articles, 'general');
         }
 
         if (articles.length === 0) {
@@ -283,72 +283,37 @@ async function fetchNews(category) {
     state.isLoading = false;
 }
 
-function isLocalhost() {
-    // NewsAPI free tier ONLY works with exactly "localhost" - not 127.0.0.1
-    return window.location.hostname === 'localhost';
-}
-
 async function fetchFromNewsAPI(category) {
-    const cacheKey = 'newsapi_' + category + '_' + state.currentCountry;
+    const cacheKey = 'gnews_' + category + '_' + state.currentCountry;
     const cached = state.cache[cacheKey];
     if (cached && Date.now() - cached.time < CONFIG.REFRESH_INTERVAL) {
         return cached.data;
     }
 
     const cat = CONFIG.CATEGORIES[category];
-    let apiUrl;
+    const url = CONFIG.GNEWS_API_BASE + '/top-headlines?category=' + cat.apiCategory +
+        '&lang=en&country=' + state.currentCountry + '&max=10&apikey=' + CONFIG.GNEWS_API_KEY;
 
-    if (cat.query) {
-        apiUrl = CONFIG.NEWS_API_BASE + '/everything?q=' + encodeURIComponent(cat.query) +
-            '&language=en&sortBy=publishedAt&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
-    } else {
-        apiUrl = CONFIG.NEWS_API_BASE + '/top-headlines?country=' + state.currentCountry + '&category=' + cat.apiCategory +
-            '&pageSize=30&apiKey=' + CONFIG.NEWS_API_KEY;
-    }
+    console.log('[NeuralPulse] Fetching from GNews:', cat.label, '(' + state.currentCountry + ')');
 
-    console.log('[NeuralPulse] Fetching from NewsAPI:', cat.label, '(' + state.currentCountry + ')');
+    const res = await fetchWithTimeout(url, CONFIG.FETCH_TIMEOUT);
+    const data = await res.json();
 
-    // NewsAPI free tier only works on localhost. Use a CORS proxy for deployed sites.
-    let data;
-    if (isLocalhost()) {
-        const res = await fetchWithTimeout(apiUrl, CONFIG.FETCH_TIMEOUT);
-        data = await res.json();
-    } else {
-        // Try multiple proxy services for reliability
-        const proxies = [
-            'https://api.allorigins.win/raw?url=',
-            'https://corsproxy.io/?'
-        ];
-        let fetched = false;
-        for (const proxy of proxies) {
-            try {
-                const res = await fetchWithTimeout(proxy + encodeURIComponent(apiUrl), CONFIG.FETCH_TIMEOUT);
-                data = await res.json();
-                fetched = true;
-                console.log('[NeuralPulse] Fetched via proxy:', proxy);
-                break;
-            } catch (proxyErr) {
-                console.warn('[NeuralPulse] Proxy failed:', proxy, proxyErr.message);
-            }
-        }
-        if (!fetched) return [];
-    }
-
-    if (data.status === 'ok' && data.articles && data.articles.length > 0) {
-        console.log('[NeuralPulse] NewsAPI returned', data.articles.length, 'articles');
-        const articles = parseNewsAPIArticles(data.articles, category);
+    if (data.articles && data.articles.length > 0) {
+        console.log('[NeuralPulse] GNews returned', data.articles.length, 'articles');
+        const articles = parseGNewsArticles(data.articles, category);
         state.cache[cacheKey] = { data: articles, time: Date.now() };
         return articles;
     }
 
-    if (data.status === 'error') {
-        console.error('[NeuralPulse] NewsAPI error:', data.code, data.message);
+    if (data.errors) {
+        console.error('[NeuralPulse] GNews error:', data.errors);
     }
 
     return [];
 }
 
-function parseNewsAPIArticles(apiArticles, category) {
+function parseGNewsArticles(apiArticles, category) {
     return apiArticles
         .filter(a => a.title && a.title !== '[Removed]')
         .map((article, i) => ({
@@ -359,7 +324,7 @@ function parseNewsAPIArticles(apiArticles, category) {
             pubDate: article.publishedAt || new Date().toISOString(),
             description: article.description || article.title || '',
             fullContent: article.content || article.description || '',
-            thumbnail: article.urlToImage || getFallbackImage(category, i),
+            thumbnail: article.image || getFallbackImage(category, i),
             category: category
         }));
 }
